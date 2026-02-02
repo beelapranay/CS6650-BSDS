@@ -22,6 +22,9 @@ func main() {
 
 	case "file":
 		fileAccessExperiment()
+	
+	case "context":
+		contextSwitchExperiment()
 
 	default:
 		panic("unknown mode: " + *mode)
