@@ -1,0 +1,9 @@
+aws configure
+aws configure set aws_session_token <YOUR SESSION TOKEN>
+aws sts get-caller-identity
+
+SPLITTER_IP: 54.202.48.113
+MAPPER1_IP: 44.250.172.177
+MAPPER2_IP: 54.149.23.179
+MAPPER3_IP: 44.244.152.60
+REDUCER_IP: 44.249.190.218

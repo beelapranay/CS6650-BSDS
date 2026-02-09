@@ -12,7 +12,7 @@ func collections() {
 	for g := range 50 {
 		g := g
 		wg.Go(func() {
-			for i := 0; i < 1000; i++ {
+			for i := range 1000 {
 				m[g*1000+i] = i
 			}
 		})
