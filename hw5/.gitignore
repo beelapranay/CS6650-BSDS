@@ -1,0 +1,28 @@
+.DS_Store
+
+# Go
+/bin/
+*.exe
+*.out
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+crash.log
+crash.*.log
+
+# Secrets
+.env
+*.pem
+*.key
+
+# Python/Locust
+.venv/
+__pycache__/
+*.pyc
+
+# IDE
+.vscode/
+.idea/
