@@ -2,8 +2,15 @@ aws configure
 aws configure set aws_session_token <YOUR SESSION TOKEN>
 aws sts get-caller-identity
 
-SPLITTER_IP: 54.202.48.113
-MAPPER1_IP: 44.250.172.177
-MAPPER2_IP: 54.149.23.179
-MAPPER3_IP: 44.244.152.60
-REDUCER_IP: 44.249.190.218
+changed the max searches to 10k, cause there was no load on the system at 100 searches
+
+min = 1, max = 6
+cooldown = 60s for both scale in and out
+cpu target 90 %
+1. the 95th percentile is reaching nearly 2000-2500ms and this tells us that the server is able to handle the load but is kind of struggling
+2. we are still not scaling out cause we put the cpu autoscaling target to be 90% and this means the server hasn't reached it's 90% capacity yet
+
+min = 1, max = 6
+cooldown = 60s for both scale in and out
+cpu target 50 %
+1. the servers scaled out and after scaling out the rps increased nicely and response times decreased drastically
