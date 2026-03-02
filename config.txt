@@ -2,15 +2,6 @@ aws configure
 aws configure set aws_session_token <YOUR SESSION TOKEN>
 aws sts get-caller-identity
 
-changed the max searches to 10k, cause there was no load on the system at 100 searches
+172.31.56.251
 
-min = 1, max = 6
-cooldown = 60s for both scale in and out
-cpu target 90 %
-1. the 95th percentile is reaching nearly 2000-2500ms and this tells us that the server is able to handle the load but is kind of struggling
-2. we are still not scaling out cause we put the cpu autoscaling target to be 90% and this means the server hasn't reached it's 90% capacity yet
-
-min = 1, max = 6
-cooldown = 60s for both scale in and out
-cpu target 50 %
-1. the servers scaled out and after scaling out the rps increased nicely and response times decreased drastically
+python -m locust -f locustfile.py --host http://localhost:8080
