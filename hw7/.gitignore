@@ -1,0 +1,39 @@
+# OS / editor noise
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# Go
+bin/
+coverage.out
+*.coverprofile
+*.test
+
+# Local build / test artifacts
+.cache/
+dist/
+results/
+*.log
+
+# Local env / secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Terraform local state and caches
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/*.tfplan
+terraform/crash.log
+terraform/crash.*.log
+terraform/.terraform.tfstate.lock.info
