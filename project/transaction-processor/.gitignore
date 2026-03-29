@@ -31,3 +31,5 @@ venv/
 load-tests/accounts.json
 load-tests/results*.csv
 load-tests/report*.html
+
+md-files/
