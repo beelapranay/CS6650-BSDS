@@ -1,0 +1,33 @@
+# macOS
+.DS_Store
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# Go build and test artifacts
+bin/
+dist/
+coverage.out
+cover.out
+*.out
+*.test
+
+# Python cache and virtual environments
+__pycache__/
+*.py[cod]
+.python-version
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Generated load-test artifacts
+load-tests/accounts.json
+load-tests/results*.csv
+load-tests/report*.html

@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Analysis.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="hw8-analysis">HW8 Analysis</h1>
+<h2 id="step-i-mysql-integration-for-relational-data">Step I: MySQL Integration for Relational Data</h2>
+<h3 id="part-1-infrastructure-extension">Part 1: Infrastructure Extension</h3>
+<p>For Homework 8, I built a self-contained AWS deployment in Terraform instead of extending an
+older repo directly. The stack provisions the infrastructure needed to host a MySQL-backed
+shopping cart API end to end:</p>
+<ul>
+<li>a dedicated VPC</li>
+<li>2 public subnets for the ALB</li>
+<li>2 private application subnets for ECS Fargate</li>
+<li>2 private database subnets for RDS</li>
+<li>an Internet Gateway and NAT Gateway</li>
+<li>an ECR repository for the container image</li>
+<li>a CloudWatch log group</li>
+<li>an Application Load Balancer</li>
+<li>an ECS Fargate service</li>
+<li>an Amazon RDS MySQL 8.0 instance on <code>db.t3.micro</code></li>
+</ul>
+<p>The RDS instance is placed in private database subnets and protected by a security group that
+allows MySQL traffic on port <code>3306</code> only from the ECS task security group. For assignment cleanup,
+I configured:</p>
+<ul>
+<li><code>skip_final_snapshot = true</code></li>
+<li><code>deletion_protection = false</code></li>
+</ul>
+<p>After deployment, Terraform reported these relevant outputs:</p>
+<ul>
+<li><code>alb_dns_name = &quot;hw8-alb-1812492547.us-west-2.elb.amazonaws.com&quot;</code></li>
+<li><code>db_endpoint = &quot;hw8-mysql.coihifioksep.us-west-2.rds.amazonaws.com&quot;</code></li>
+<li><code>db_name = &quot;shopping_cart&quot;</code></li>
+<li><code>db_port = 3306</code></li>
+<li><code>ecs_cluster_name = &quot;hw8-cluster&quot;</code></li>
+<li><code>ecs_service_name = &quot;hw8-service&quot;</code></li>
+</ul>
+<p>Deployment evidence:</p>
+<p><img src="file:///Users/pranaybeela/Documents/NEU/CS6650-BSDS/hw8/screenshots/terraform-output.png" alt="Terraform outputs"></p>
+<h3 id="part-2-database-schema-implementation">Part 2: Database Schema Implementation</h3>
+<p>I designed a normalized relational schema with two tables: <code>carts</code> and <code>cart_items</code>.</p>
+<h4 id="table-structure">Table Structure</h4>
+<p><code>carts</code></p>
+<ul>
+<li><code>cart_id</code> as <code>BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY</code></li>
+<li><code>customer_id</code></li>
+<li><code>status</code></li>
+<li><code>created_at</code></li>
+<li><code>updated_at</code></li>
+</ul>
+<p><code>cart_items</code></p>
+<ul>
+<li><code>cart_item_id</code> as <code>BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY</code></li>
+<li><code>cart_id</code></li>
+<li><code>product_id</code></li>
+<li><code>quantity</code></li>
+<li><code>created_at</code></li>
+<li><code>updated_at</code></li>
+</ul>
+<h4 id="why-i-chose-two-tables">Why I Chose Two Tables</h4>
+<p>This structure matches the API access pattern in <code>api.yaml</code> very naturally:</p>
+<ul>
+<li>one cart can contain many items</li>
+<li>retrieving a cart should return both header fields and item rows</li>
+<li>item-level updates should be possible without rewriting the entire cart</li>
+<li>cart-item integrity should be enforced by the database</li>
+</ul>
+<p>Keeping the header and items separate also avoids embedding cart contents into one large JSON
+column, which would make partial updates and constraints weaker.</p>
+<h4 id="key-and-constraint-strategy">Key and Constraint Strategy</h4>
+<ul>
+<li><code>cart_id</code> is the primary key for <code>carts</code></li>
+<li><code>cart_item_id</code> is the primary key for <code>cart_items</code></li>
+<li><code>cart_items.cart_id</code> is a foreign key to <code>carts.cart_id</code></li>
+<li><code>ON DELETE CASCADE</code> ensures item rows are removed automatically if a cart is deleted</li>
+<li><code>UNIQUE (cart_id, product_id)</code> prevents duplicate product rows in the same cart</li>
+<li><code>CHECK (quantity &gt; 0)</code> enforces valid quantities</li>
+</ul>
+<h4 id="index-strategy">Index Strategy</h4>
+<p>I added:</p>
+<ul>
+<li><code>idx_carts_customer_id</code> on <code>carts.customer_id</code></li>
+<li><code>idx_carts_customer_updated</code> on <code>(customer_id, updated_at DESC)</code></li>
+<li><code>uq_cart_items_cart_product</code> on <code>(cart_id, product_id)</code></li>
+</ul>
+<p>These indexes support the required access patterns:</p>
+<ul>
+<li>fast cart lookup by ID</li>
+<li>customer history queries</li>
+<li>efficient upsert behavior for adding items</li>
+<li>quick retrieval of all items for a single cart</li>
+</ul>
+<h4 id="concurrent-modification-strategy">Concurrent Modification Strategy</h4>
+<p>For concurrent cart updates, I relied on InnoDB row-level locking and a transaction-based write
+pattern:</p>
+<ol>
+<li>update the cart timestamp</li>
+<li>verify that the cart exists</li>
+<li>insert or update the item row using <code>ON DUPLICATE KEY UPDATE</code></li>
+<li>commit</li>
+</ol>
+<p>This allows different carts to be updated independently while also safely serializing concurrent
+writes to the same <code>(cart_id, product_id)</code> pair.</p>
+<h4 id="trade-offs-considered">Trade-Offs Considered</h4>
+<ul>
+<li>A JSON-based single-table design would reduce joins, but it would weaken item-level integrity and
+make atomic item upserts harder.</li>
+<li><code>AUTO_INCREMENT</code> cart IDs are simple and work well for the assignment.</li>
+<li>The schema is intentionally narrow and focused only on the shopping cart API, not the broader
+product catalog.</li>
+</ul>
+<h3 id="part-3-shopping-cart-api-implementation">Part 3: Shopping Cart API Implementation</h3>
+<p>I implemented the required MySQL-backed endpoints in Go using <code>net/http</code> and <code>database/sql</code> with
+the MySQL driver:</p>
+<ul>
+<li><code>POST /shopping-carts</code></li>
+<li><code>GET /shopping-carts/{id}</code></li>
+<li><code>POST /shopping-carts/{id}/items</code></li>
+<li><code>GET /health</code></li>
+</ul>
+<h4 id="implementation-details">Implementation Details</h4>
+<p>The service reads its database settings from ECS environment variables:</p>
+<ul>
+<li><code>DB_HOST</code></li>
+<li><code>DB_PORT</code></li>
+<li><code>DB_NAME</code></li>
+<li><code>DB_USER</code></li>
+<li><code>DB_PASSWORD</code></li>
+</ul>
+<p>Connection pooling is configured explicitly:</p>
+<ul>
+<li><code>MaxOpenConns = 25</code></li>
+<li><code>MaxIdleConns = 10</code></li>
+<li><code>ConnMaxLifetime = 5m</code></li>
+<li><code>ConnMaxIdleTime = 2m</code></li>
+</ul>
+<p>On startup, the application:</p>
+<ol>
+<li>waits for MySQL to become reachable</li>
+<li>runs <code>CREATE TABLE IF NOT EXISTS</code> for both cart tables</li>
+<li>starts serving traffic</li>
+</ol>
+<h4 id="query-design">Query Design</h4>
+<p><code>POST /shopping-carts</code></p>
+<ul>
+<li>inserts a row into <code>carts</code></li>
+<li>returns the created cart with timestamps and empty <code>items</code></li>
+</ul>
+<p><code>GET /shopping-carts/{id}</code></p>
+<ul>
+<li>uses a <code>LEFT JOIN</code> from <code>carts</code> to <code>cart_items</code></li>
+<li>returns the complete cart and all items in one response</li>
+</ul>
+<p><code>POST /shopping-carts/{id}/items</code></p>
+<ul>
+<li>opens a transaction</li>
+<li>updates the cart timestamp</li>
+<li>fails with <code>404</code> if the cart does not exist</li>
+<li>upserts the item row with <code>ON DUPLICATE KEY UPDATE</code></li>
+<li>commits the transaction</li>
+</ul>
+<p>In the current implementation, posting the same product to the same cart again increments the
+stored quantity.</p>
+<h4 id="api-validation-evidence">API Validation Evidence</h4>
+<p>After deployment, the API returned the expected responses:</p>
+<ul>
+<li><code>GET /health</code> returned <code>200 OK</code> with:
+<ul>
+<li><code>{&quot;status&quot;:&quot;ok&quot;,&quot;db_host&quot;:&quot;hw8-mysql.coihifioksep.us-west-2.rds.amazonaws.com&quot;}</code></li>
+</ul>
+</li>
+<li><code>POST /shopping-carts</code> returned <code>201 Created</code></li>
+<li><code>POST /shopping-carts/1/items</code> returned <code>204 No Content</code></li>
+<li><code>GET /shopping-carts/1</code> returned <code>200 OK</code> and included:
+<ul>
+<li><code>customer_id = 101</code></li>
+<li><code>status = &quot;active&quot;</code></li>
+<li><code>items = [{&quot;product_id&quot;:555,&quot;quantity&quot;:2}]</code></li>
+</ul>
+</li>
+</ul>
+<p>API evidence:</p>
+<p><img src="file:///Users/pranaybeela/Documents/NEU/CS6650-BSDS/hw8/screenshots/terraform-alb-health-check.png" alt="ALB health check"></p>
+<p><img src="file:///Users/pranaybeela/Documents/NEU/CS6650-BSDS/hw8/screenshots/terraform-create.png" alt="Create cart response"></p>
+<p><img src="file:///Users/pranaybeela/Documents/NEU/CS6650-BSDS/hw8/screenshots/terraform-store-and-retrieve.png" alt="Store and retrieve cart"></p>
+<h4 id="what-did-not-work-initially">What Did Not Work Initially</h4>
+<p>I hit several real implementation issues during this step:</p>
+<ol>
+<li>The Docker build failed because the image build copied <code>go.mod</code> but not <code>go.sum</code>, so the MySQL
+driver dependency could not be resolved inside Docker.</li>
+<li>I initially created ECS-specific IAM roles, but the assignment environment expected everything
+to run under <code>LabRole</code>, so I changed the ECS task definition to use <code>LabRole</code>.</li>
+<li>The first Terraform version created a dependency cycle between ECS and RDS when I tried to pass
+DB settings through the ECS module while also using the ECS security group for RDS access.
+I fixed this by moving the ECS task security group to the root Terraform module.</li>
+<li>The ALB initially returned <code>503 Service Temporarily Unavailable</code> because the ECS target was not
+healthy yet. After the task stabilized and connected to the database successfully, the health
+endpoint returned <code>200 OK</code>.</li>
+</ol>
+<h4 id="what-i-learned-during-implementation">What I Learned During Implementation</h4>
+<ul>
+<li>The database integration itself was straightforward once the dependency and packaging issues were
+fixed.</li>
+<li>The hardest part was not the SQL logic; it was making the infrastructure, Docker image, ECS task,
+IAM role choice, and RDS networking align cleanly.</li>
+<li>The <code>LEFT JOIN</code> cart retrieval query and the upsert-based item write pattern were both simple and
+a good fit for the schema.</li>
+</ul>
+<h3 id="part-4-required-performance-testing">Part 4: Required Performance Testing</h3>
+<p>I ran the required 150-operation MySQL test and saved the results to <code>mysql_test_results.json</code>.</p>
+<h4 id="test-protocol">Test Protocol</h4>
+<ul>
+<li>50 <code>POST /shopping-carts</code></li>
+<li>50 <code>POST /shopping-carts/{id}/items</code></li>
+<li>50 <code>GET /shopping-carts/{id}</code></li>
+<li>total operations: <code>150</code></li>
+<li>results file: <code>mysql_test_results.json</code></li>
+</ul>
+<p>The run started at <code>2026-03-22T13:39:14Z</code> and ended at <code>2026-03-22T13:39:47Z</code>, so the full test
+completed in about <code>33 seconds</code>, well within the 5-minute limit.</p>
+<h4 id="mysql-test-results-summary">MySQL Test Results Summary</h4>
+<p>Overall:</p>
+<ul>
+<li>total operations: <code>150</code></li>
+<li>success rate: <code>100%</code></li>
+<li>average response time: <code>221.40 ms</code></li>
+<li>P50: <code>210.58 ms</code></li>
+<li>P95: <code>302.78 ms</code></li>
+<li>P99: <code>320.72 ms</code></li>
+</ul>
+<p>By operation:</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th style="text-align:right">Count</th>
+<th style="text-align:right">Avg (ms)</th>
+<th style="text-align:right">P50 (ms)</th>
+<th style="text-align:right">P95 (ms)</th>
+<th style="text-align:right">P99 (ms)</th>
+<th style="text-align:right">Success</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CREATE_CART</td>
+<td style="text-align:right">50</td>
+<td style="text-align:right">219.93</td>
+<td style="text-align:right">210.21</td>
+<td style="text-align:right">296.62</td>
+<td style="text-align:right">367.25</td>
+<td style="text-align:right">50/50</td>
+</tr>
+<tr>
+<td>ADD_ITEMS</td>
+<td style="text-align:right">50</td>
+<td style="text-align:right">226.18</td>
+<td style="text-align:right">212.84</td>
+<td style="text-align:right">303.67</td>
+<td style="text-align:right">308.57</td>
+<td style="text-align:right">50/50</td>
+</tr>
+<tr>
+<td>GET_CART</td>
+<td style="text-align:right">50</td>
+<td style="text-align:right">218.07</td>
+<td style="text-align:right">209.40</td>
+<td style="text-align:right">301.52</td>
+<td style="text-align:right">318.87</td>
+<td style="text-align:right">50/50</td>
+</tr>
+</tbody>
+</table>
+<h4 id="performance-observations">Performance Observations</h4>
+<ul>
+<li>All 150 operations succeeded, which confirms the API and schema were stable under the required
+workload.</li>
+<li>Response times were fairly consistent across create, add, and get operations.</li>
+<li><code>ADD_ITEMS</code> was the slowest operation on average, which makes sense because it performs a
+transaction and touches both the parent cart row and the unique <code>(cart_id, product_id)</code> item row.</li>
+<li><code>GET_CART</code> was not dramatically faster than writes, suggesting that network and load balancer
+overhead contributed significantly to total latency in this setup.</li>
+</ul>
+<h4 id="optimization-notes">Optimization Notes</h4>
+<p>At this stage, I did not need a major SQL rewrite to complete the 150-operation test successfully.
+The important optimizations were structural:</p>
+<ul>
+<li>normalized schema with proper indexes</li>
+<li>explicit connection pool settings</li>
+<li>join-based retrieval for full-cart reads</li>
+<li>upsert logic backed by the unique cart-product constraint</li>
+</ul>
+<p>The test results are strong enough to support the MySQL sections of the later comparison work in
+Step III.</p>
+<h4 id="brief-comparison-with-week-5-in-memory-approach">Brief Comparison with Week 5 In-Memory Approach</h4>
+<p>Compared with the Week 5 product service, the MySQL-backed Homework 8 service is clearly more
+operationally complex. In Week 5, the API used an in-memory map and avoided database round trips
+entirely. The Week 5 analysis reported:</p>
+<ul>
+<li>steady throughput around <code>70-77 RPS</code></li>
+<li><code>HttpUser</code> median latency around <code>80-100 ms</code></li>
+<li><code>HttpUser</code> <code>p95</code> around <code>160 ms</code></li>
+<li><code>HttpUser</code> <code>p99</code> under <code>200 ms</code></li>
+</ul>
+<p>By contrast, the Homework 8 MySQL test averaged <code>221.40 ms</code> across the 150 required operations,
+with <code>p95 = 302.78 ms</code> and <code>p99 = 320.72 ms</code>.</p>
+<p>This difference is consistent with the architecture change:</p>
+<ul>
+<li>Week 5 kept state in process memory</li>
+<li>Homework 8 sends every cart operation through the ALB, ECS task, and RDS database</li>
+</ul>
+<p>The trade-off is that Homework 8 pays extra latency and infrastructure complexity, but gains
+persistence, shared state across tasks, and relational integrity. The two workloads are not
+perfectly identical, so the comparison should be treated as directional rather than strictly
+apples-to-apples, but it still shows the expected cost of moving from in-memory state to durable
+storage.</p>
+<h3 id="part-5-learning-notes">Part 5: Learning Notes</h3>
+<h4 id="what-surprised-me">What Surprised Me</h4>
+<p>The most surprising part of this step was that the application logic was simpler than the
+infrastructure integration. The cart schema, join query, and upsert logic all fit the API
+requirements cleanly, but getting Docker, ECS, RDS, IAM, and Terraform dependencies aligned took
+more iteration than the SQL itself.</p>
+<p>Another useful observation was how similar the response times were across create, add-item, and
+get-cart requests. I expected reads to be noticeably faster than writes, but in this deployed setup
+the differences were small:</p>
+<ul>
+<li><code>CREATE_CART</code> avg: <code>219.93 ms</code></li>
+<li><code>ADD_ITEMS</code> avg: <code>226.18 ms</code></li>
+<li><code>GET_CART</code> avg: <code>218.07 ms</code></li>
+</ul>
+<p>That suggests the end-to-end request path through the ALB, ECS task, and RDS network round trip
+contributed a large share of total latency.</p>
+<h4 id="what-failed-initially">What Failed Initially</h4>
+<p>Several parts of the first attempt did not work cleanly:</p>
+<ul>
+<li>The Docker build failed because I forgot to include <code>go.sum</code> in the image build context.</li>
+<li>I initially created dedicated ECS IAM roles, but the assignment environment expected the service
+to run under <code>LabRole</code>.</li>
+<li>The Terraform design created a dependency cycle when ECS needed RDS settings while RDS also
+needed the ECS security group reference.</li>
+<li>The ALB first returned <code>503</code> because the ECS target was not healthy yet.</li>
+</ul>
+<p>These were all fixable, but they were good reminders that deployment details can block progress
+even when the application code itself is correct.</p>
+<h4 id="how-i-optimized-for-the-test-requirements">How I Optimized for the Test Requirements</h4>
+<p>To make the 150-operation test reliable, I focused on a few practical optimizations:</p>
+<ul>
+<li>two-table normalized schema instead of a more complex denormalized design</li>
+<li>indexes for the actual access patterns used by the API</li>
+<li>explicit connection pool settings</li>
+<li>a single-query <code>LEFT JOIN</code> for full-cart retrieval</li>
+<li>transactional item writes using <code>ON DUPLICATE KEY UPDATE</code></li>
+</ul>
+<p>I did not need to rewrite the schema after testing, but I did improve the infrastructure and image
+build setup so the application could start consistently and stay healthy behind the ALB.</p>
+<h4 id="what-i-would-do-differently-next-time">What I Would Do Differently Next Time</h4>
+<p>If I were doing this again, I would:</p>
+<ul>
+<li>decide the IAM role strategy earlier so I would not have to rework ECS task roles later</li>
+<li>treat the container build as part of the first deployment design instead of as a later detail</li>
+<li>validate Terraform dependencies more carefully before the first full apply</li>
+<li>capture CloudWatch logs and target group health reasons immediately when the first <code>503</code> appeared</li>
+</ul>
+<p>Overall, this step made the trade-off very clear: moving from in-memory state to MySQL gives
+durability, shared state across tasks, and relational guarantees, but it also introduces more
+operational complexity than the Week 5 in-memory version.</p>
+<h3 id="part-6-cloudwatch-monitoring">Part 6: CloudWatch Monitoring</h3>
+<p>I reviewed CloudWatch metrics for the MySQL test window from <code>2026-03-22T13:35:00Z</code> to
+<code>2026-03-22T13:45:00Z</code>, which covers the successful 150-operation test run.</p>
+<h4 id="rds-metrics">RDS Metrics</h4>
+<p><code>AWS/RDS</code> for <code>DBInstanceIdentifier = hw8-mysql</code></p>
+<p>RDS metric screenshots:</p>
+<p><img src="file:///Users/pranaybeela/Documents/NEU/CS6650-BSDS/hw8/screenshots/rds-cpu.png" alt="RDS CPU utilization"></p>
+<p><img src="file:///Users/pranaybeela/Documents/NEU/CS6650-BSDS/hw8/screenshots/rds-connections.png" alt="RDS database connections"></p>
+<ul>
+<li><code>CPUUtilization</code>
+<ul>
+<li>average during the window: about <code>3.94%</code></li>
+<li>peak observed datapoint: about <code>4.46%</code></li>
+</ul>
+</li>
+<li><code>DatabaseConnections</code>
+<ul>
+<li>mostly <code>1</code> active connection during the test window</li>
+<li>peak observed datapoint: <code>1</code></li>
+</ul>
+</li>
+<li><code>ReadIOPS</code>
+<ul>
+<li>average during the window: about <code>0.28</code></li>
+<li>peak observed datapoint: about <code>1.30</code></li>
+</ul>
+</li>
+<li><code>WriteIOPS</code>
+<ul>
+<li>average during the window: about <code>1.44</code></li>
+<li>peak observed datapoint: about <code>9.58</code></li>
+</ul>
+</li>
+</ul>
+<p>These metrics show that the <code>db.t3.micro</code> instance handled the required workload comfortably. CPU
+stayed low, connection count stayed flat, and write activity was more noticeable than read activity,
+which matches the test mix of cart creation and item insertion.</p>
+<h4 id="ecs-metrics">ECS Metrics</h4>
+<p><code>AWS/ECS</code> for <code>ClusterName = hw8-cluster</code> and <code>ServiceName = hw8-service</code></p>
+<p>ECS metric screenshot:</p>
+<p><img src="file:///Users/pranaybeela/Documents/NEU/CS6650-BSDS/hw8/screenshots/Screenshot 2026-03-22 at 9.57.30 AM.png" alt="ECS CPU and memory utilization"></p>
+<ul>
+<li><code>CPUUtilization</code>
+<ul>
+<li>average across the window: about <code>0.15%</code></li>
+<li>peak observed datapoint: about <code>1.93%</code></li>
+</ul>
+</li>
+<li><code>MemoryUtilization</code>
+<ul>
+<li>average across the window: about <code>4.21%</code></li>
+<li>peak observed datapoint: about <code>4.30%</code></li>
+</ul>
+</li>
+</ul>
+<p>The ECS service stayed lightly loaded during the sequential test. CPU and memory both remained far
+below the task limits, which suggests the service had substantial headroom for this assignment-scale
+workload.</p>
+<h4 id="monitoring-interpretation">Monitoring Interpretation</h4>
+<ul>
+<li>The RDS instance was not close to saturation during the 150-operation test.</li>
+<li>The database connection pool effectively reused a single connection for the sequential workload.</li>
+<li>ECS resource usage remained low, so application compute was not the limiting factor.</li>
+<li>The similar API response times across create, add, and get operations are consistent with a setup
+where network and service-hop overhead matter more than raw compute pressure.</li>
+</ul>
+<h2 id="step-ii-dynamodb-integration">Step II: DynamoDB Integration</h2>
+<h3 id="part-1-dynamodb-table-design-challenge">Part 1: DynamoDB Table Design Challenge</h3>
+<p>For Step II Part 1, I extended the same <code>hw8</code> Terraform stack to provision DynamoDB alongside
+MySQL so both backends can coexist for later comparison. The DynamoDB infrastructure uses a single
+table intended for the shopping cart workload.</p>
+<h4 id="table-design">Table Design</h4>
+<p>I chose a single DynamoDB table with:</p>
+<ul>
+<li>partition key: <code>cart_id</code> (String)</li>
+<li>no sort key</li>
+<li>no secondary indexes</li>
+<li>billing mode: <code>PAY_PER_REQUEST</code></li>
+</ul>
+<p>The corresponding Terraform output is exposed as:</p>
+<ul>
+<li><code>dynamodb_table_name = &quot;hw8-shopping-carts&quot;</code></li>
+</ul>
+<p>Step II infrastructure evidence:</p>
+<p><img src="file:///Users/pranaybeela/Documents/NEU/CS6650-BSDS/hw8/screenshots/terraform-output-step2p1.png" alt="DynamoDB Terraform output"></p>
+<h4 id="why-shopping-carts-fit-nosql">Why Shopping Carts Fit NoSQL</h4>
+<p>Shopping carts are a good fit for DynamoDB because the access pattern is narrow and centered on a
+single cart:</p>
+<ul>
+<li>create a cart</li>
+<li>retrieve a cart by ID</li>
+<li>update a cart's items</li>
+</ul>
+<p>There is no strong need for multi-table joins, and the main lookup key is naturally the cart ID.</p>
+<h4 id="partition-key-strategy">Partition Key Strategy</h4>
+<p>I chose <code>cart_id</code> as the partition key because:</p>
+<ul>
+<li>it aligns directly with the primary lookup path</li>
+<li>each cart gets its own key space</li>
+<li>normal shopping traffic should distribute cleanly across many different cart IDs</li>
+</ul>
+<p>I did not add a sort key because the Step II access patterns do not require ordered sub-items or
+range queries under one cart key.</p>
+<h4 id="item-structure">Item Structure</h4>
+<p>Unlike the MySQL model, where items live in a separate <code>cart_items</code> table, the DynamoDB design is
+document-oriented. Each cart will store its items as an embedded list inside the cart document, for
+example:</p>
+<pre class="hljs"><code><div>{
+  <span class="hljs-attr">"cart_id"</span>: <span class="hljs-string">"42"</span>,
+  <span class="hljs-attr">"customer_id"</span>: <span class="hljs-number">1001</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"active"</span>,
+  <span class="hljs-attr">"items"</span>: [
+    {<span class="hljs-attr">"product_id"</span>: <span class="hljs-number">2001</span>, <span class="hljs-attr">"quantity"</span>: <span class="hljs-number">3</span>},
+    {<span class="hljs-attr">"product_id"</span>: <span class="hljs-number">2002</span>, <span class="hljs-attr">"quantity"</span>: <span class="hljs-number">1</span>}
+  ],
+  <span class="hljs-attr">"created_at"</span>: <span class="hljs-string">"2026-03-22T13:00:00Z"</span>,
+  <span class="hljs-attr">"updated_at"</span>: <span class="hljs-string">"2026-03-22T13:05:00Z"</span>
+}
+</div></code></pre>
+<p>This is a better fit for DynamoDB because the most common read is &quot;get the whole cart&quot; rather than
+&quot;query child rows separately and join them later.&quot;</p>
+<h4 id="index-strategy">Index Strategy</h4>
+<p>I intentionally did not add GSIs in Part 1. The required Step II operations do not need them, and
+avoiding unnecessary indexes keeps the design simpler and cheaper.</p>
+<h4 id="capacity-and-scalability-choice">Capacity and Scalability Choice</h4>
+<p>I chose <code>PAY_PER_REQUEST</code> rather than provisioned capacity so the homework test can run without
+manual read/write capacity planning. This reduces the risk of throttling caused by underestimating
+load and makes the table easier to compare with MySQL at assignment scale.</p>
+<h4 id="comparison-with-mysql">Comparison with MySQL</h4>
+<p>Compared to the Step I MySQL design:</p>
+<ul>
+<li>MySQL uses two normalized tables with foreign keys.</li>
+<li>DynamoDB uses one table with embedded cart items.</li>
+<li>MySQL enforces structure in the database.</li>
+<li>DynamoDB shifts more structure and merge logic into the application.</li>
+<li>MySQL uses SQL joins and transactions.</li>
+<li>DynamoDB is optimized around single-item access patterns.</li>
+</ul>
+<h4 id="trade-offs-considered">Trade-Offs Considered</h4>
+<ul>
+<li>The DynamoDB design makes single-cart retrieval simple and avoids joins.</li>
+<li>Updating cart items will use a document-style read/modify/write pattern instead of a relational
+upsert.</li>
+<li>The design is very efficient for cart-by-ID access, but weaker for relational cross-cart queries
+such as customer history unless more indexes or a second access pattern are added later.</li>
+</ul>
+<h3 id="part-2-api-implementation">Part 2: API Implementation</h3>
+<p>For Step II Part 2, I kept the same shopping cart HTTP API but added a DynamoDB-backed store behind
+the handlers. The application now supports backend selection through environment configuration, so
+the same container and the same ALB path structure can run either:</p>
+<ul>
+<li><code>DB_TYPE = &quot;mysql&quot;</code></li>
+<li><code>DB_TYPE = &quot;dynamodb&quot;</code></li>
+</ul>
+<p>This keeps the comparison fair because the HTTP layer stays the same while only the data layer
+changes.</p>
+<h4 id="implementation-approach">Implementation Approach</h4>
+<p>The Go service now uses a shared <code>CartStore</code> interface with two implementations:</p>
+<ul>
+<li><code>mysqlCartStore</code></li>
+<li><code>dynamoCartStore</code></li>
+</ul>
+<p>The DynamoDB implementation uses:</p>
+<ul>
+<li><code>PutItem</code> to create a new cart document</li>
+<li><code>GetItem</code> to retrieve a cart by partition key</li>
+<li><code>UpdateItem</code> to update embedded cart items</li>
+</ul>
+<p>To keep cart IDs compatible with the existing API shape, I used a counter item in the same table.
+The special item with partition key <code>__counter__</code> is updated with DynamoDB's <code>ADD</code> operation to
+produce the next sequential cart ID.</p>
+<h4 id="data-modeling-in-the-application">Data Modeling in the Application</h4>
+<p>The DynamoDB cart document stores:</p>
+<ul>
+<li><code>cart_id</code></li>
+<li><code>customer_id</code></li>
+<li><code>status</code></li>
+<li><code>items</code></li>
+<li><code>created_at</code></li>
+<li><code>updated_at</code></li>
+</ul>
+<p>Item updates follow a document-style read/modify/write flow:</p>
+<ol>
+<li>fetch the cart by <code>cart_id</code></li>
+<li>merge the incoming item into the <code>items</code> list</li>
+<li>write the updated list back with <code>UpdateItem</code></li>
+</ol>
+<p>This is different from the MySQL <code>ON DUPLICATE KEY UPDATE</code> approach, but it matches the
+single-document DynamoDB model chosen in Part 1.</p>
+<h4 id="deployment-and-validation-evidence">Deployment and Validation Evidence</h4>
+<p>After switching the deployed service to <code>store_backend = &quot;dynamodb&quot;</code>, Terraform reported the
+expected table outputs:</p>
+<ul>
+<li><code>dynamodb_table_name = &quot;hw8-shopping-carts&quot;</code></li>
+<li><code>dynamodb_table_arn = &quot;arn:aws:dynamodb:us-west-2:770561854863:table/hw8-shopping-carts&quot;</code></li>
+</ul>
+<p>Deployment evidence:</p>
+<p><img src="file:///Users/pranaybeela/Documents/NEU/CS6650-BSDS/hw8/screenshots/terraform-output-step2p2.png" alt="DynamoDB backend Terraform output"></p>
+<p>The health endpoint confirmed that the running service was using DynamoDB:</p>
+<ul>
+<li><code>GET /health</code> returned <code>200 OK</code></li>
+<li>response body:
+<ul>
+<li><code>{&quot;status&quot;:&quot;ok&quot;,&quot;backend&quot;:&quot;dynamodb&quot;,&quot;table&quot;:&quot;hw8-shopping-carts&quot;}</code></li>
+</ul>
+</li>
+</ul>
+<p><img src="file:///Users/pranaybeela/Documents/NEU/CS6650-BSDS/hw8/screenshots/terraform-step2p2-health.png" alt="DynamoDB health check"></p>
+<p>The shopping cart API also worked end to end on the DynamoDB backend:</p>
+<ul>
+<li><code>POST /shopping-carts</code> returned <code>201 Created</code></li>
+<li><code>POST /shopping-carts/1/items</code> returned <code>204 No Content</code></li>
+<li><code>GET /shopping-carts/1</code> returned <code>200 OK</code></li>
+</ul>
+<p>Returned cart evidence:</p>
+<ul>
+<li><code>shopping_cart_id = 1</code></li>
+<li><code>customer_id = 201</code></li>
+<li><code>status = &quot;active&quot;</code></li>
+<li><code>items = [{&quot;product_id&quot;:777,&quot;quantity&quot;:3}]</code></li>
+</ul>
+<p><img src="file:///Users/pranaybeela/Documents/NEU/CS6650-BSDS/hw8/screenshots/terraform-step2p2-post-req.png" alt="DynamoDB create cart response"></p>
+<p><img src="file:///Users/pranaybeela/Documents/NEU/CS6650-BSDS/hw8/screenshots/terraform-step2p2-post-and-get.png" alt="DynamoDB add item and get cart"></p>
+<h4 id="implementation-notes">Implementation Notes</h4>
+<ul>
+<li>The same ALB and ECS service front door stayed in place; only the store backend changed.</li>
+<li>DynamoDB required no SQL migrations and no connection pool management.</li>
+<li>The application-level logic is slightly more responsible for merging and writing item state than
+in the MySQL version.</li>
+</ul>
+<h3 id="part-3-eventual-consistency-investigation">Part 3: Eventual Consistency Investigation</h3>
+<p>For Step II Part 3, I ran a focused consistency investigation against the live DynamoDB-backed
+deployment and saved the raw results to <code>dynamodb_consistency_results.json</code>. The goal was to
+separate two different behaviors:</p>
+<ul>
+<li>normal read-after-write visibility for simple cart operations</li>
+<li>behavior under rapid concurrent updates to the same cart</li>
+</ul>
+<h4 id="test-scenarios-used">Test Scenarios Used</h4>
+<p>I used three scenarios that match the assignment prompt:</p>
+<ol>
+<li>create a cart and immediately retrieve it</li>
+<li>add an item and immediately fetch the cart again</li>
+<li>send rapid updates from multiple clients to the same cart</li>
+</ol>
+<p>The test harness for this investigation is in <code>scripts/dynamodb_consistency_test.py</code>.</p>
+<h4 id="observed-read-after-write-behavior">Observed Read-After-Write Behavior</h4>
+<p>For the single-writer scenarios, I did not observe visible eventual consistency delays during this
+test run:</p>
+<ul>
+<li>create-then-get: 20/20 carts were readable on the first fetch attempt</li>
+<li>add-then-get: 20/20 item updates were visible on the first fetch attempt</li>
+<li>misses observed in either scenario: <code>0</code></li>
+</ul>
+<p>Measured first-read timings were:</p>
+<ul>
+<li>create-then-get average: <code>218.49 ms</code></li>
+<li>create-then-get max: <code>305.72 ms</code></li>
+<li>add-then-get average: <code>234.58 ms</code></li>
+<li>add-then-get max: <code>298.02 ms</code></li>
+</ul>
+<p>These timings mainly reflect end-to-end API latency, because every successful verification happened
+on the first read attempt. In other words, during this investigation I did not catch a case where
+the cart write succeeded but the immediate follow-up read returned stale data.</p>
+<h4 id="rapid-same-cart-update-findings">Rapid Same-Cart Update Findings</h4>
+<p>The rapid-update scenario exposed a more important issue than eventual read delay. I ran 5 rounds
+where 8 concurrent clients each attempted to add a different item to the same cart.</p>
+<p>Results:</p>
+<ul>
+<li>all 40 write requests returned <code>204 No Content</code></li>
+<li>incomplete rounds: <code>5/5</code></li>
+<li>each final cart was still missing multiple items after about 2 seconds of polling</li>
+</ul>
+<p>This means the main consistency risk in the current DynamoDB implementation is not simple
+read-after-write delay. Instead, it is the application's read/modify/write update pattern:</p>
+<ol>
+<li>fetch whole cart</li>
+<li>merge items in memory</li>
+<li>write back the full item list</li>
+</ol>
+<p>When several clients do that at once, later writes can overwrite earlier ones. This is effectively
+a lost-update problem.</p>
+<h4 id="what-was-most-affected">What Was Most Affected</h4>
+<p>The patterns most affected were:</p>
+<ul>
+<li>multiple clients modifying the same cart at nearly the same time</li>
+<li>workloads where each request rewrites the full embedded item list</li>
+</ul>
+<p>The patterns that behaved well were:</p>
+<ul>
+<li>one client creating a cart and immediately reading it back</li>
+<li>one client adding an item and immediately fetching the cart</li>
+</ul>
+<h4 id="how-to-handle-consistency-gracefully">How to Handle Consistency Gracefully</h4>
+<p>Based on this investigation, the best application responses would be:</p>
+<ul>
+<li>use <code>ConsistentRead</code> when a follow-up read must reflect the latest write immediately</li>
+<li>add optimistic locking with a version attribute and conditional writes</li>
+<li>avoid rewriting the entire <code>items</code> list on every update when many concurrent writers are expected</li>
+<li>return authoritative updated cart state from writes, or retry on detected update conflicts</li>
+</ul>
+<h4 id="reflection">Reflection</h4>
+<p>The most interesting takeaway was that DynamoDB's eventual consistency model was less visible in my
+single-writer tests than I expected, but the document-style update strategy introduced a stronger
+concurrency risk. That is an important contrast with the MySQL version, where row-level updates and
+transaction semantics made same-cart concurrent modification safer by default.</p>
+<h3 id="part-4-required-identical-testing">Part 4: Required Identical Testing</h3>
+<p>For Step II Part 4, I ran the exact same 150-operation test used for the MySQL implementation so
+the later comparison will be valid:</p>
+<ul>
+<li>50 <code>POST /shopping-carts</code></li>
+<li>50 <code>POST /shopping-carts/{id}/items</code></li>
+<li>50 <code>GET /shopping-carts/{id}</code></li>
+</ul>
+<p>I reused the same load-test methodology and JSON result shape, and saved the DynamoDB run to
+<code>dynamodb_test_results.json</code>.</p>
+<h4 id="validation-summary">Validation Summary</h4>
+<ul>
+<li>total operations: <code>150</code></li>
+<li>successful operations: <code>150</code></li>
+<li>status code distribution:
+<ul>
+<li><code>201</code>: 50</li>
+<li><code>204</code>: 50</li>
+<li><code>200</code>: 50</li>
+</ul>
+</li>
+</ul>
+<p>This confirms the DynamoDB-backed API completed the required identical test without functional
+errors.</p>
+<h4 id="latency-summary">Latency Summary</h4>
+<p>Overall latency:</p>
+<ul>
+<li>average: <code>232.32 ms</code></li>
+<li>p50: <code>213.93 ms</code></li>
+<li>p95: <code>310.23 ms</code></li>
+<li>p99: <code>358.47 ms</code></li>
+</ul>
+<p>Per-operation averages:</p>
+<ul>
+<li><code>create_cart</code>: <code>248.65 ms</code></li>
+<li><code>add_items</code>: <code>237.08 ms</code></li>
+<li><code>get_cart</code>: <code>211.24 ms</code></li>
+</ul>
+<p>Per-operation p95 values:</p>
+<ul>
+<li><code>create_cart</code>: <code>328.59 ms</code></li>
+<li><code>add_items</code>: <code>311.43 ms</code></li>
+<li><code>get_cart</code>: <code>221.23 ms</code></li>
+</ul>
+<h4 id="comparison-readiness">Comparison Readiness</h4>
+<p>The DynamoDB results file now matches the assignment's comparison prerequisites:</p>
+<ul>
+<li>exactly 150 operations</li>
+<li>50 create operations</li>
+<li>50 add-item operations</li>
+<li>50 get-cart operations</li>
+<li>same JSON structure as <code>mysql_test_results.json</code></li>
+</ul>
+<p>That means both required backend result files now exist and are ready for Step III:</p>
+<ul>
+<li><code>mysql_test_results.json</code></li>
+<li><code>dynamodb_test_results.json</code></li>
+</ul>
+<h3 id="part-5-learning-notes">Part 5: Learning Notes</h3>
+<h4 id="what-surprised-me">What Surprised Me</h4>
+<p>The biggest surprise was that eventual consistency was not the most visible issue in the simple
+single-writer tests. In the create-then-get and add-then-get scenarios, every immediate follow-up
+read succeeded on the first attempt during my investigation run. What showed up more clearly was a
+concurrency problem in the application logic: when several clients updated the same cart at once,
+the read/modify/write pattern caused lost updates even though all requests returned success.</p>
+<p>Another difference from MySQL was how much more of the data-shaping logic moved into the
+application. In the MySQL version, the schema, unique key, and <code>ON DUPLICATE KEY UPDATE</code> pattern
+handled more of the write semantics directly in the database. In DynamoDB, I had to think more
+explicitly about item structure, counter generation, and concurrent-write behavior.</p>
+<h4 id="design-evolution">Design Evolution</h4>
+<p>My initial and final partition key choice was <code>cart_id</code>, and after testing I kept that design. It
+matched the three required access patterns well:</p>
+<ul>
+<li>create a cart</li>
+<li>retrieve a cart by cart ID</li>
+<li>update a cart by cart ID</li>
+</ul>
+<p>I did not see evidence of hot partition problems during the assignment-scale tests. The workload
+spread across many cart IDs, and the 150-operation test plus consistency probe both completed
+without throttling symptoms.</p>
+<p>The part I would change in a later iteration is not the partition key, but the update strategy. I
+validated the current design by:</p>
+<ul>
+<li>confirming all API endpoints worked end to end on the DynamoDB backend</li>
+<li>completing the 150-operation required test successfully</li>
+<li>running the eventual consistency probe against the live deployment</li>
+</ul>
+<p>That validation showed the table design itself was acceptable for the homework access pattern, but
+the current same-cart update method should be strengthened with conditional writes, optimistic
+locking, or a more granular item model if concurrent writers are expected.</p>
+<h3 id="part-6-cloudwatch-monitoring">Part 6: CloudWatch Monitoring</h3>
+<p>For Step II Part 6, I reviewed DynamoDB CloudWatch metrics during the live DynamoDB test window.
+The main metrics captured were:</p>
+<ul>
+<li><code>ConsumedReadCapacityUnits</code></li>
+<li><code>ConsumedWriteCapacityUnits</code></li>
+<li><code>SuccessfulRequestLatency</code></li>
+</ul>
+<h4 id="consumed-read-capacity">Consumed Read Capacity</h4>
+<p>The read-capacity graph stayed low overall, with short spikes up to about <code>0.48</code> consumed units.
+That fits the workload because the test used a moderate number of point reads by cart ID rather
+than wide scans or repeated multi-item queries.</p>
+<p><img src="file:///Users/pranaybeela/Documents/NEU/CS6650-BSDS/hw8/screenshots/dynamodb-ConsumedReadCapacityUnits.png" alt="DynamoDB consumed read capacity"></p>
+<h4 id="consumed-write-capacity">Consumed Write Capacity</h4>
+<p>The write-capacity graph was also modest, peaking around <code>0.97</code> consumed units. That was expected
+because the workload included cart creation plus item updates, and the table was configured with
+<code>PAY_PER_REQUEST</code>, so there was no manual capacity tuning needed during the test.</p>
+<p><img src="file:///Users/pranaybeela/Documents/NEU/CS6650-BSDS/hw8/screenshots/dynamodb- ConsumedWriteCapacityUnits.png" alt="DynamoDB consumed write capacity"></p>
+<h4 id="successful-request-latency">Successful Request Latency</h4>
+<p>The latency graph showed that DynamoDB service-side operation latency stayed in a low millisecond
+range. <code>GetItem</code> appeared highest early in the captured window, <code>UpdateItem</code> was below that, and
+<code>PutItem</code> remained the lowest of the three. Even though end-to-end API latency was higher once ALB,
+ECS, and application processing were included, the underlying DynamoDB operation latency itself
+looked stable.</p>
+<p><img src="file:///Users/pranaybeela/Documents/NEU/CS6650-BSDS/hw8/screenshots/dynamodb-SuccessfulRequestLatency.png" alt="DynamoDB successful request latency"></p>
+<h4 id="monitoring-takeaways">Monitoring Takeaways</h4>
+<ul>
+<li>I did not observe evidence of DynamoDB throttling during the assignment-scale tests.</li>
+<li>CloudWatch did not show a <code>ThrottledRequests</code> metric in the metric set I captured, but the API
+tests completed without throttling-like failures.</li>
+<li>The graphs support the earlier conclusion that the main DynamoDB challenge in this homework was
+application-side update behavior under concurrency, not raw table throughput.</li>
+</ul>
+<h2 id="step-iii-database-comparison--analysis">Step III: Database Comparison &amp; Analysis</h2>
+<h3 id="part-0-pre-analysis-data-verification">Part 0: Pre-Analysis Data Verification</h3>
+<p>Before comparison, I verified that both backend result files met the assignment requirement:</p>
+<ul>
+<li><code>mysql_test_results.json</code>: <code>150</code> operations</li>
+<li><code>dynamodb_test_results.json</code>: <code>150</code> operations</li>
+<li><code>combined_results.json</code>: <code>300</code> merged records total</li>
+</ul>
+<p>Each backend contributed:</p>
+<ul>
+<li><code>50</code> <code>create_cart</code></li>
+<li><code>50</code> <code>add_items</code></li>
+<li><code>50</code> <code>get_cart</code></li>
+</ul>
+<p>I created <code>combined_results.json</code> by merging both datasets and tagging each record with its source
+database. This file is the single source used for all Step III comparisons.</p>
+<p>Verification screenshot:</p>
+<p><img src="file:///Users/pranaybeela/Documents/NEU/CS6650-BSDS/hw8/screenshots/step3-combined-results.png" alt="Step III combined results verification"></p>
+<h3 id="part-1-performance-comparison-table">Part 1: Performance Comparison Table</h3>
+<p>Using <code>combined_results.json</code>, the overall comparison is:</p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>MySQL</th>
+<th>DynamoDB</th>
+<th>Winner</th>
+<th>Margin</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Avg Response Time (ms)</td>
+<td>221.40</td>
+<td>232.32</td>
+<td>MySQL</td>
+<td>10.92 ms</td>
+</tr>
+<tr>
+<td>P50 Response Time (ms)</td>
+<td>210.58</td>
+<td>213.93</td>
+<td>MySQL</td>
+<td>3.35 ms</td>
+</tr>
+<tr>
+<td>P95 Response Time (ms)</td>
+<td>302.78</td>
+<td>310.23</td>
+<td>MySQL</td>
+<td>7.45 ms</td>
+</tr>
+<tr>
+<td>P99 Response Time (ms)</td>
+<td>320.72</td>
+<td>358.47</td>
+<td>MySQL</td>
+<td>37.75 ms</td>
+</tr>
+<tr>
+<td>Success Rate (%)</td>
+<td>100.00</td>
+<td>100.00</td>
+<td>Tie</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>Total Operations</td>
+<td>150</td>
+<td>150</td>
+<td>Tie</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<h4 id="operation-specific-breakdown">Operation-Specific Breakdown</h4>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>MySQL Avg (ms)</th>
+<th>DynamoDB Avg (ms)</th>
+<th>Faster By</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CREATE_CART</td>
+<td>219.93</td>
+<td>248.65</td>
+<td>MySQL by 28.72 ms</td>
+</tr>
+<tr>
+<td>ADD_ITEMS</td>
+<td>226.18</td>
+<td>237.08</td>
+<td>MySQL by 10.90 ms</td>
+</tr>
+<tr>
+<td>GET_CART</td>
+<td>218.07</td>
+<td>211.24</td>
+<td>DynamoDB by 6.83 ms</td>
+</tr>
+</tbody>
+</table>
+<h4 id="consistency-model-impact-assessment">Consistency Model Impact Assessment</h4>
+<p>The practical consistency difference was not just &quot;ACID vs eventual consistency&quot; in the abstract. In
+my actual testing:</p>
+<ul>
+<li>MySQL behaved predictably for create, add, and read operations.</li>
+<li>DynamoDB did not show visible stale reads in simple single-writer create-then-get or add-then-get
+tests.</li>
+<li>DynamoDB did show lost-update behavior when multiple clients updated the same cart concurrently.</li>
+</ul>
+<p>So the most important observed impact on user experience was:</p>
+<ul>
+<li>MySQL gave safer default behavior for same-cart concurrent writes.</li>
+<li>DynamoDB was fine for simple point reads and writes, but the current document rewrite strategy
+needs conditional writes or optimistic locking if multiple writers can touch the same cart.</li>
+</ul>
+<p>If I were shipping this exact implementation to users, MySQL would give stronger default protection
+for carts that might be edited from multiple tabs, devices, or services at once.</p>
+<h3 id="part-2-resource-efficiency-analysis">Part 2: Resource Efficiency Analysis</h3>
+<h4 id="resource-utilization-comparison">Resource Utilization Comparison</h4>
+<p>MySQL and DynamoDB both handled the assignment-scale test comfortably, but they consumed resources in
+very different ways.</p>
+<p>For MySQL:</p>
+<ul>
+<li>RDS CPU stayed low, averaging about <code>3.94%</code> and peaking around <code>4.46%</code>.</li>
+<li><code>DatabaseConnections</code> stayed around <code>1</code>, which shows the connection pool reused a small number of
+connections effectively.</li>
+<li>ECS CPU and memory were also very low during the 150-operation test.</li>
+</ul>
+<p>For DynamoDB:</p>
+<ul>
+<li><code>ConsumedReadCapacityUnits</code> stayed low, peaking around <code>0.48</code>.</li>
+<li><code>ConsumedWriteCapacityUnits</code> stayed low, peaking around <code>0.97</code>.</li>
+<li>DynamoDB service-side request latency remained in the low millisecond range in CloudWatch.</li>
+</ul>
+<h4 id="connection-management-vs-managed-scaling">Connection Management vs Managed Scaling</h4>
+<p>The implementation experience made the trade-off clear:</p>
+<ul>
+<li>MySQL required subnet placement, RDS setup, credentials, schema management, and connection pool
+tuning.</li>
+<li>DynamoDB removed connection pool management and schema migrations, and <code>PAY_PER_REQUEST</code> avoided
+manual throughput planning for this homework scale.</li>
+</ul>
+<h4 id="predictability-and-capacity-planning">Predictability and Capacity Planning</h4>
+<p>From an operational perspective:</p>
+<ul>
+<li>MySQL gave more predictable correctness for concurrent updates, but it requires thinking about DB
+sizing, connections, and instance health.</li>
+<li>DynamoDB gave more predictable scaling mechanics for key-value style traffic, but correctness for
+same-document concurrent updates depended more heavily on application write design.</li>
+</ul>
+<p>For bursty traffic, DynamoDB looks easier to scale operationally. For workloads where update
+correctness and relational guarantees matter more than elasticity, MySQL looks safer.</p>
+<h3 id="part-3-real-world-scenario-recommendations">Part 3: Real-World Scenario Recommendations</h3>
+<h4 id="scenario-a-startup-mvp">Scenario A: Startup MVP</h4>
+<p><strong>Recommendation</strong>: MySQL</p>
+<p><strong>Key Evidence</strong>: MySQL was faster overall in my tests (<code>221.40 ms</code> vs <code>232.32 ms</code>) and safer for
+concurrent cart updates in the implementation I built. For a small MVP, the simpler relational
+correctness model matters more than the small infrastructure overhead, especially when one developer
+needs behavior that is easy to reason about.</p>
+<h4 id="scenario-b-growing-business">Scenario B: Growing Business</h4>
+<p><strong>Recommendation</strong>: MySQL</p>
+<p><strong>Key Evidence</strong>: MySQL won average, p50, p95, and p99 response time, and it fits feature expansion
+better because growing businesses usually need more reporting, relational queries, and stronger
+write guarantees. The normalized two-table design also maps cleanly to later analytics or order
+integration work.</p>
+<h4 id="scenario-c-high-traffic-events">Scenario C: High-Traffic Events</h4>
+<p><strong>Recommendation</strong>: DynamoDB</p>
+<p><strong>Key Evidence</strong>: Even though DynamoDB was slightly slower overall in my test, it removed database
+connection management and used <code>PAY_PER_REQUEST</code> with low consumed capacity during the homework
+load. For sudden spikes, the managed scaling model is more attractive than protecting a single RDS
+instance, as long as the cart update pattern is redesigned to avoid lost updates.</p>
+<h4 id="scenario-d-global-platform">Scenario D: Global Platform</h4>
+<p><strong>Recommendation</strong>: DynamoDB</p>
+<p><strong>Key Evidence</strong>: My direct tests did not cover multi-region deployment, but the DynamoDB patterns I
+implemented point more naturally toward globally distributed, always-on workloads than the small
+single-region MySQL setup used here. I would only choose DynamoDB here after fixing the concurrent
+update design with conditional writes or version checks.</p>
+<h3 id="part-4-my-evidence-based-architecture-recommendations">Part 4: My Evidence-Based Architecture Recommendations</h3>
+<h4 id="shopping-cart-winner">Shopping Cart Winner</h4>
+<p>For this assignment's shopping cart implementation, I would choose <strong>MySQL</strong>.</p>
+<h4 id="supporting-evidence">Supporting Evidence</h4>
+<ul>
+<li>response time advantage: <code>10.92 ms</code> on average, <code>7.45 ms</code> at p95, and <code>37.75 ms</code> at p99</li>
+<li>implementation complexity difference:
+<ul>
+<li>MySQL required more infrastructure work</li>
+<li>DynamoDB required more application-side correctness work</li>
+</ul>
+</li>
+<li>other factors:
+<ul>
+<li>MySQL handled the cart update model more safely</li>
+<li>DynamoDB consistency testing exposed lost updates under rapid same-cart writes</li>
+</ul>
+</li>
+</ul>
+<h4 id="when-i-would-choose-dynamodb-instead">When I Would Choose DynamoDB Instead</h4>
+<p>I would choose DynamoDB instead when:</p>
+<ul>
+<li>traffic is highly bursty or unpredictable</li>
+<li>I want to avoid connection pool and instance management</li>
+<li>the application can be designed around key-based access patterns</li>
+<li>I can invest in safer conditional write logic for concurrent cart updates</li>
+</ul>
+<h4 id="polyglot-strategy-for-a-full-e-commerce-system">Polyglot Strategy for a Full E-Commerce System</h4>
+<ul>
+<li>Shopping carts: MySQL, based on the safer update behavior and slightly better latency in this
+implementation</li>
+<li>User sessions: DynamoDB, because session access is key-based and benefits from managed scaling</li>
+<li>Product catalog: MySQL, because richer filtering, admin tooling, and relational queries are likely
+to matter</li>
+<li>Order history: MySQL, because order data usually benefits from strong consistency, transactions,
+and audit-friendly structure</li>
+</ul>
+<h3 id="part-5-learning-reflection">Part 5: Learning Reflection</h3>
+<h4 id="what-surprised-me">What Surprised Me</h4>
+<p>The most surprising result was that DynamoDB was not the clear performance winner. It only beat
+MySQL on <code>GET_CART</code>, while MySQL won the overall average and tail-latency comparisons. Another
+surprise was that eventual consistency itself was not the most visible runtime issue; the bigger
+problem was lost updates caused by document-style rewrites under concurrency.</p>
+<h4 id="what-failed-initially">What Failed Initially</h4>
+<p>Several things failed during the implementation process:</p>
+<ul>
+<li>the Docker build initially failed because <code>go.sum</code> was not copied into the image build context</li>
+<li>the first ECS deployment used dedicated roles instead of <code>LabRole</code></li>
+<li>the ALB returned <code>503</code> until the ECS task became healthy</li>
+<li>Terraform dependencies needed rework to avoid an ECS/RDS security group cycle</li>
+<li>the first DynamoDB concurrency probe showed that the read/modify/write item update pattern was not
+safe for many simultaneous writers</li>
+</ul>
+<p>These failures were useful because they separated infrastructure issues from application logic
+issues.</p>
+<h4 id="key-insights-gained">Key Insights Gained</h4>
+<p>I would definitely choose MySQL when I want strong write guarantees, relational modeling, and
+default-safe behavior for shopping-cart style updates. I would definitely choose DynamoDB when the
+traffic pattern is mostly key-based, scaling pressure is high, and I am willing to design the write
+path carefully around DynamoDB's strengths.</p>
+<p>What I would tell another student starting this assignment is:</p>
+<ul>
+<li>keep the API identical across both backends so the comparison stays fair</li>
+<li>automate the 150-operation test early</li>
+<li>validate concurrency behavior, not just happy-path endpoint success</li>
+<li>separate database performance from deployment/debugging problems</li>
+</ul>
+<p>Hands-on implementation changed my understanding because it showed that database choice is not just
+about average latency. Correctness under concurrent writes, operational model, and application data
+shape all mattered at least as much as the raw response-time numbers.</p>
+
+</body>
+</html>

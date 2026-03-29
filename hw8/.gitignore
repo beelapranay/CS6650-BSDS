@@ -1,0 +1,11 @@
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+crash.log
+src/hw8-cart-api
+terraform.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json

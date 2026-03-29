@@ -1,0 +1,1329 @@
+{
+  "base_url": "http://hw8-alb-1812492547.us-west-2.elb.amazonaws.com",
+  "generated_at": "2026-03-22T15:20:25Z",
+  "create_then_get": {
+    "scenario": "create_then_get",
+    "iterations": 20,
+    "misses": 0,
+    "max_delay_ms": 295.2,
+    "avg_delay_ms": 223.85,
+    "records": [
+      {
+        "scenario": "create_then_get",
+        "cart_id": 47,
+        "observed": {
+          "visible": true,
+          "delay_ms": 243.71,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 47,
+            "customer_id": 3000,
+            "status": "active",
+            "items": [],
+            "created_at": "2026-03-22T15:20:25Z",
+            "updated_at": "2026-03-22T15:20:25Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:26Z"
+      },
+      {
+        "scenario": "create_then_get",
+        "cart_id": 48,
+        "observed": {
+          "visible": true,
+          "delay_ms": 294.41,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 48,
+            "customer_id": 3001,
+            "status": "active",
+            "items": [],
+            "created_at": "2026-03-22T15:20:26Z",
+            "updated_at": "2026-03-22T15:20:26Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:26Z"
+      },
+      {
+        "scenario": "create_then_get",
+        "cart_id": 49,
+        "observed": {
+          "visible": true,
+          "delay_ms": 295.2,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 49,
+            "customer_id": 3002,
+            "status": "active",
+            "items": [],
+            "created_at": "2026-03-22T15:20:26Z",
+            "updated_at": "2026-03-22T15:20:26Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:27Z"
+      },
+      {
+        "scenario": "create_then_get",
+        "cart_id": 50,
+        "observed": {
+          "visible": true,
+          "delay_ms": 209.39,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 50,
+            "customer_id": 3003,
+            "status": "active",
+            "items": [],
+            "created_at": "2026-03-22T15:20:27Z",
+            "updated_at": "2026-03-22T15:20:27Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:27Z"
+      },
+      {
+        "scenario": "create_then_get",
+        "cart_id": 51,
+        "observed": {
+          "visible": true,
+          "delay_ms": 235.34,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 51,
+            "customer_id": 3004,
+            "status": "active",
+            "items": [],
+            "created_at": "2026-03-22T15:20:27Z",
+            "updated_at": "2026-03-22T15:20:27Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:28Z"
+      },
+      {
+        "scenario": "create_then_get",
+        "cart_id": 52,
+        "observed": {
+          "visible": true,
+          "delay_ms": 237.51,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 52,
+            "customer_id": 3005,
+            "status": "active",
+            "items": [],
+            "created_at": "2026-03-22T15:20:28Z",
+            "updated_at": "2026-03-22T15:20:28Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:28Z"
+      },
+      {
+        "scenario": "create_then_get",
+        "cart_id": 53,
+        "observed": {
+          "visible": true,
+          "delay_ms": 232.93,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 53,
+            "customer_id": 3006,
+            "status": "active",
+            "items": [],
+            "created_at": "2026-03-22T15:20:28Z",
+            "updated_at": "2026-03-22T15:20:28Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:29Z"
+      },
+      {
+        "scenario": "create_then_get",
+        "cart_id": 54,
+        "observed": {
+          "visible": true,
+          "delay_ms": 223.54,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 54,
+            "customer_id": 3007,
+            "status": "active",
+            "items": [],
+            "created_at": "2026-03-22T15:20:29Z",
+            "updated_at": "2026-03-22T15:20:29Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:29Z"
+      },
+      {
+        "scenario": "create_then_get",
+        "cart_id": 55,
+        "observed": {
+          "visible": true,
+          "delay_ms": 205.13,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 55,
+            "customer_id": 3008,
+            "status": "active",
+            "items": [],
+            "created_at": "2026-03-22T15:20:29Z",
+            "updated_at": "2026-03-22T15:20:29Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:30Z"
+      },
+      {
+        "scenario": "create_then_get",
+        "cart_id": 56,
+        "observed": {
+          "visible": true,
+          "delay_ms": 210.48,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 56,
+            "customer_id": 3009,
+            "status": "active",
+            "items": [],
+            "created_at": "2026-03-22T15:20:30Z",
+            "updated_at": "2026-03-22T15:20:30Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:30Z"
+      },
+      {
+        "scenario": "create_then_get",
+        "cart_id": 57,
+        "observed": {
+          "visible": true,
+          "delay_ms": 207.37,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 57,
+            "customer_id": 3010,
+            "status": "active",
+            "items": [],
+            "created_at": "2026-03-22T15:20:30Z",
+            "updated_at": "2026-03-22T15:20:30Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:31Z"
+      },
+      {
+        "scenario": "create_then_get",
+        "cart_id": 58,
+        "observed": {
+          "visible": true,
+          "delay_ms": 214.84,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 58,
+            "customer_id": 3011,
+            "status": "active",
+            "items": [],
+            "created_at": "2026-03-22T15:20:31Z",
+            "updated_at": "2026-03-22T15:20:31Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:31Z"
+      },
+      {
+        "scenario": "create_then_get",
+        "cart_id": 59,
+        "observed": {
+          "visible": true,
+          "delay_ms": 211.16,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 59,
+            "customer_id": 3012,
+            "status": "active",
+            "items": [],
+            "created_at": "2026-03-22T15:20:31Z",
+            "updated_at": "2026-03-22T15:20:31Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:32Z"
+      },
+      {
+        "scenario": "create_then_get",
+        "cart_id": 60,
+        "observed": {
+          "visible": true,
+          "delay_ms": 213.41,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 60,
+            "customer_id": 3013,
+            "status": "active",
+            "items": [],
+            "created_at": "2026-03-22T15:20:32Z",
+            "updated_at": "2026-03-22T15:20:32Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:32Z"
+      },
+      {
+        "scenario": "create_then_get",
+        "cart_id": 61,
+        "observed": {
+          "visible": true,
+          "delay_ms": 210.1,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 61,
+            "customer_id": 3014,
+            "status": "active",
+            "items": [],
+            "created_at": "2026-03-22T15:20:32Z",
+            "updated_at": "2026-03-22T15:20:32Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:33Z"
+      },
+      {
+        "scenario": "create_then_get",
+        "cart_id": 62,
+        "observed": {
+          "visible": true,
+          "delay_ms": 211.35,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 62,
+            "customer_id": 3015,
+            "status": "active",
+            "items": [],
+            "created_at": "2026-03-22T15:20:33Z",
+            "updated_at": "2026-03-22T15:20:33Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:33Z"
+      },
+      {
+        "scenario": "create_then_get",
+        "cart_id": 63,
+        "observed": {
+          "visible": true,
+          "delay_ms": 207.98,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 63,
+            "customer_id": 3016,
+            "status": "active",
+            "items": [],
+            "created_at": "2026-03-22T15:20:33Z",
+            "updated_at": "2026-03-22T15:20:33Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:33Z"
+      },
+      {
+        "scenario": "create_then_get",
+        "cart_id": 64,
+        "observed": {
+          "visible": true,
+          "delay_ms": 202.07,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 64,
+            "customer_id": 3017,
+            "status": "active",
+            "items": [],
+            "created_at": "2026-03-22T15:20:34Z",
+            "updated_at": "2026-03-22T15:20:34Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:34Z"
+      },
+      {
+        "scenario": "create_then_get",
+        "cart_id": 65,
+        "observed": {
+          "visible": true,
+          "delay_ms": 201.53,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 65,
+            "customer_id": 3018,
+            "status": "active",
+            "items": [],
+            "created_at": "2026-03-22T15:20:34Z",
+            "updated_at": "2026-03-22T15:20:34Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:34Z"
+      },
+      {
+        "scenario": "create_then_get",
+        "cart_id": 66,
+        "observed": {
+          "visible": true,
+          "delay_ms": 209.55,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 66,
+            "customer_id": 3019,
+            "status": "active",
+            "items": [],
+            "created_at": "2026-03-22T15:20:35Z",
+            "updated_at": "2026-03-22T15:20:35Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:35Z"
+      }
+    ]
+  },
+  "add_then_get": {
+    "scenario": "add_then_get",
+    "iterations": 20,
+    "misses": 0,
+    "max_delay_ms": 302.07,
+    "avg_delay_ms": 223.65,
+    "records": [
+      {
+        "scenario": "add_then_get",
+        "cart_id": 67,
+        "product_id": 9000,
+        "observed": {
+          "visible": true,
+          "delay_ms": 205.25,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 67,
+            "customer_id": 4000,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 9000,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:35Z",
+            "updated_at": "2026-03-22T15:20:35Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:36Z"
+      },
+      {
+        "scenario": "add_then_get",
+        "cart_id": 68,
+        "product_id": 9001,
+        "observed": {
+          "visible": true,
+          "delay_ms": 205.4,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 68,
+            "customer_id": 4001,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 9001,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:36Z",
+            "updated_at": "2026-03-22T15:20:36Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:36Z"
+      },
+      {
+        "scenario": "add_then_get",
+        "cart_id": 69,
+        "product_id": 9002,
+        "observed": {
+          "visible": true,
+          "delay_ms": 206.11,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 69,
+            "customer_id": 4002,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 9002,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:36Z",
+            "updated_at": "2026-03-22T15:20:37Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:37Z"
+      },
+      {
+        "scenario": "add_then_get",
+        "cart_id": 70,
+        "product_id": 9003,
+        "observed": {
+          "visible": true,
+          "delay_ms": 214.58,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 70,
+            "customer_id": 4003,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 9003,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:37Z",
+            "updated_at": "2026-03-22T15:20:37Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:38Z"
+      },
+      {
+        "scenario": "add_then_get",
+        "cart_id": 71,
+        "product_id": 9004,
+        "observed": {
+          "visible": true,
+          "delay_ms": 288.84,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 71,
+            "customer_id": 4004,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 9004,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:38Z",
+            "updated_at": "2026-03-22T15:20:38Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:38Z"
+      },
+      {
+        "scenario": "add_then_get",
+        "cart_id": 72,
+        "product_id": 9005,
+        "observed": {
+          "visible": true,
+          "delay_ms": 210.11,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 72,
+            "customer_id": 4005,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 9005,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:38Z",
+            "updated_at": "2026-03-22T15:20:39Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:39Z"
+      },
+      {
+        "scenario": "add_then_get",
+        "cart_id": 73,
+        "product_id": 9006,
+        "observed": {
+          "visible": true,
+          "delay_ms": 200.16,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 73,
+            "customer_id": 4006,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 9006,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:39Z",
+            "updated_at": "2026-03-22T15:20:39Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:40Z"
+      },
+      {
+        "scenario": "add_then_get",
+        "cart_id": 74,
+        "product_id": 9007,
+        "observed": {
+          "visible": true,
+          "delay_ms": 203.57,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 74,
+            "customer_id": 4007,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 9007,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:40Z",
+            "updated_at": "2026-03-22T15:20:40Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:40Z"
+      },
+      {
+        "scenario": "add_then_get",
+        "cart_id": 75,
+        "product_id": 9008,
+        "observed": {
+          "visible": true,
+          "delay_ms": 252.46,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 75,
+            "customer_id": 4008,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 9008,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:40Z",
+            "updated_at": "2026-03-22T15:20:41Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:41Z"
+      },
+      {
+        "scenario": "add_then_get",
+        "cart_id": 76,
+        "product_id": 9009,
+        "observed": {
+          "visible": true,
+          "delay_ms": 215.32,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 76,
+            "customer_id": 4009,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 9009,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:41Z",
+            "updated_at": "2026-03-22T15:20:41Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:42Z"
+      },
+      {
+        "scenario": "add_then_get",
+        "cart_id": 77,
+        "product_id": 9010,
+        "observed": {
+          "visible": true,
+          "delay_ms": 210.37,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 77,
+            "customer_id": 4010,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 9010,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:42Z",
+            "updated_at": "2026-03-22T15:20:42Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:42Z"
+      },
+      {
+        "scenario": "add_then_get",
+        "cart_id": 78,
+        "product_id": 9011,
+        "observed": {
+          "visible": true,
+          "delay_ms": 294.68,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 78,
+            "customer_id": 4011,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 9011,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:42Z",
+            "updated_at": "2026-03-22T15:20:43Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:43Z"
+      },
+      {
+        "scenario": "add_then_get",
+        "cart_id": 79,
+        "product_id": 9012,
+        "observed": {
+          "visible": true,
+          "delay_ms": 302.07,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 79,
+            "customer_id": 4012,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 9012,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:43Z",
+            "updated_at": "2026-03-22T15:20:43Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:44Z"
+      },
+      {
+        "scenario": "add_then_get",
+        "cart_id": 80,
+        "product_id": 9013,
+        "observed": {
+          "visible": true,
+          "delay_ms": 208.67,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 80,
+            "customer_id": 4013,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 9013,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:44Z",
+            "updated_at": "2026-03-22T15:20:44Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:44Z"
+      },
+      {
+        "scenario": "add_then_get",
+        "cart_id": 81,
+        "product_id": 9014,
+        "observed": {
+          "visible": true,
+          "delay_ms": 210.01,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 81,
+            "customer_id": 4014,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 9014,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:45Z",
+            "updated_at": "2026-03-22T15:20:45Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:45Z"
+      },
+      {
+        "scenario": "add_then_get",
+        "cart_id": 82,
+        "product_id": 9015,
+        "observed": {
+          "visible": true,
+          "delay_ms": 210.59,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 82,
+            "customer_id": 4015,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 9015,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:45Z",
+            "updated_at": "2026-03-22T15:20:46Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:46Z"
+      },
+      {
+        "scenario": "add_then_get",
+        "cart_id": 83,
+        "product_id": 9016,
+        "observed": {
+          "visible": true,
+          "delay_ms": 209.8,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 83,
+            "customer_id": 4016,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 9016,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:46Z",
+            "updated_at": "2026-03-22T15:20:47Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:47Z"
+      },
+      {
+        "scenario": "add_then_get",
+        "cart_id": 84,
+        "product_id": 9017,
+        "observed": {
+          "visible": true,
+          "delay_ms": 207.56,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 84,
+            "customer_id": 4017,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 9017,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:47Z",
+            "updated_at": "2026-03-22T15:20:47Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:48Z"
+      },
+      {
+        "scenario": "add_then_get",
+        "cart_id": 85,
+        "product_id": 9018,
+        "observed": {
+          "visible": true,
+          "delay_ms": 209.05,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 85,
+            "customer_id": 4018,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 9018,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:48Z",
+            "updated_at": "2026-03-22T15:20:48Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:48Z"
+      },
+      {
+        "scenario": "add_then_get",
+        "cart_id": 86,
+        "product_id": 9019,
+        "observed": {
+          "visible": true,
+          "delay_ms": 208.37,
+          "attempts": 1,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 86,
+            "customer_id": 4019,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 9019,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:49Z",
+            "updated_at": "2026-03-22T15:20:49Z"
+          }
+        },
+        "timestamp": "2026-03-22T15:20:49Z"
+      }
+    ]
+  },
+  "rapid_updates_same_cart": {
+    "scenario": "rapid_updates_same_cart",
+    "rounds": 5,
+    "concurrency": 8,
+    "incomplete_rounds": 5,
+    "records": [
+      {
+        "scenario": "rapid_updates_same_cart",
+        "cart_id": 87,
+        "concurrency": 8,
+        "observed": {
+          "visible": false,
+          "delay_ms": 2097.29,
+          "attempts": 8,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 87,
+            "customer_id": 5000,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 10002,
+                "quantity": 1
+              },
+              {
+                "product_id": 10005,
+                "quantity": 1
+              },
+              {
+                "product_id": 10000,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:49Z",
+            "updated_at": "2026-03-22T15:20:50Z"
+          }
+        },
+        "write_outcomes": [
+          {
+            "product_id": 10000,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10001,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10002,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10003,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10004,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10005,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10006,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10007,
+            "status_code": 204,
+            "payload": null
+          }
+        ],
+        "missing_product_ids": [
+          10001,
+          10003,
+          10004,
+          10006,
+          10007
+        ],
+        "timestamp": "2026-03-22T15:20:52Z"
+      },
+      {
+        "scenario": "rapid_updates_same_cart",
+        "cart_id": 88,
+        "concurrency": 8,
+        "observed": {
+          "visible": false,
+          "delay_ms": 2157.39,
+          "attempts": 8,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 88,
+            "customer_id": 5001,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 10007,
+                "quantity": 1
+              },
+              {
+                "product_id": 10001,
+                "quantity": 1
+              },
+              {
+                "product_id": 10000,
+                "quantity": 1
+              },
+              {
+                "product_id": 10002,
+                "quantity": 1
+              },
+              {
+                "product_id": 10006,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:52Z",
+            "updated_at": "2026-03-22T15:20:52Z"
+          }
+        },
+        "write_outcomes": [
+          {
+            "product_id": 10000,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10001,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10002,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10003,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10004,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10005,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10006,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10007,
+            "status_code": 204,
+            "payload": null
+          }
+        ],
+        "missing_product_ids": [
+          10003,
+          10004,
+          10005
+        ],
+        "timestamp": "2026-03-22T15:20:54Z"
+      },
+      {
+        "scenario": "rapid_updates_same_cart",
+        "cart_id": 89,
+        "concurrency": 8,
+        "observed": {
+          "visible": false,
+          "delay_ms": 2176.43,
+          "attempts": 8,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 89,
+            "customer_id": 5002,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 10007,
+                "quantity": 1
+              },
+              {
+                "product_id": 10003,
+                "quantity": 1
+              },
+              {
+                "product_id": 10006,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:55Z",
+            "updated_at": "2026-03-22T15:20:55Z"
+          }
+        },
+        "write_outcomes": [
+          {
+            "product_id": 10000,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10001,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10002,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10003,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10004,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10005,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10006,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10007,
+            "status_code": 204,
+            "payload": null
+          }
+        ],
+        "missing_product_ids": [
+          10000,
+          10001,
+          10002,
+          10004,
+          10005
+        ],
+        "timestamp": "2026-03-22T15:20:57Z"
+      },
+      {
+        "scenario": "rapid_updates_same_cart",
+        "cart_id": 90,
+        "concurrency": 8,
+        "observed": {
+          "visible": false,
+          "delay_ms": 2073.7,
+          "attempts": 7,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 90,
+            "customer_id": 5003,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 10002,
+                "quantity": 1
+              },
+              {
+                "product_id": 10003,
+                "quantity": 1
+              },
+              {
+                "product_id": 10001,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:20:57Z",
+            "updated_at": "2026-03-22T15:20:57Z"
+          }
+        },
+        "write_outcomes": [
+          {
+            "product_id": 10000,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10001,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10002,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10003,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10004,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10005,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10006,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10007,
+            "status_code": 204,
+            "payload": null
+          }
+        ],
+        "missing_product_ids": [
+          10000,
+          10004,
+          10005,
+          10006,
+          10007
+        ],
+        "timestamp": "2026-03-22T15:21:00Z"
+      },
+      {
+        "scenario": "rapid_updates_same_cart",
+        "cart_id": 91,
+        "concurrency": 8,
+        "observed": {
+          "visible": false,
+          "delay_ms": 2132.17,
+          "attempts": 8,
+          "status_code": 200,
+          "payload": {
+            "shopping_cart_id": 91,
+            "customer_id": 5004,
+            "status": "active",
+            "items": [
+              {
+                "product_id": 10003,
+                "quantity": 1
+              },
+              {
+                "product_id": 10001,
+                "quantity": 1
+              },
+              {
+                "product_id": 10004,
+                "quantity": 1
+              },
+              {
+                "product_id": 10002,
+                "quantity": 1
+              }
+            ],
+            "created_at": "2026-03-22T15:21:00Z",
+            "updated_at": "2026-03-22T15:21:00Z"
+          }
+        },
+        "write_outcomes": [
+          {
+            "product_id": 10000,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10001,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10002,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10003,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10004,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10005,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10006,
+            "status_code": 204,
+            "payload": null
+          },
+          {
+            "product_id": 10007,
+            "status_code": 204,
+            "payload": null
+          }
+        ],
+        "missing_product_ids": [
+          10000,
+          10005,
+          10006,
+          10007
+        ],
+        "timestamp": "2026-03-22T15:21:02Z"
+      }
+    ]
+  }
+}
