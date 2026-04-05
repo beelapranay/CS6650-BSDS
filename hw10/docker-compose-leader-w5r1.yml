@@ -1,0 +1,89 @@
+version: "3.8"
+
+# Leader-Follower: W=5, R=1
+# All nodes must ack a write. Reads only need the leader.
+
+services:
+  leader:
+    build: ./leader-follower
+    container_name: lf-leader
+    environment:
+      - ROLE=leader
+      - NODE_ID=leader
+      - W=5
+      - R=1
+      - N=5
+      - FOLLOWERS=http://follower1:5000,http://follower2:5000,http://follower3:5000,http://follower4:5000
+      - PORT=5000
+    ports:
+      - "6000:5000"
+    networks:
+      - kvnet
+
+  follower1:
+    build: ./leader-follower
+    container_name: lf-follower1
+    environment:
+      - ROLE=follower
+      - NODE_ID=follower1
+      - W=5
+      - R=1
+      - N=5
+      - LEADER_URL=http://leader:5000
+      - PORT=5000
+    ports:
+      - "6001:5000"
+    networks:
+      - kvnet
+
+  follower2:
+    build: ./leader-follower
+    container_name: lf-follower2
+    environment:
+      - ROLE=follower
+      - NODE_ID=follower2
+      - W=5
+      - R=1
+      - N=5
+      - LEADER_URL=http://leader:5000
+      - PORT=5000
+    ports:
+      - "6002:5000"
+    networks:
+      - kvnet
+
+  follower3:
+    build: ./leader-follower
+    container_name: lf-follower3
+    environment:
+      - ROLE=follower
+      - NODE_ID=follower3
+      - W=5
+      - R=1
+      - N=5
+      - LEADER_URL=http://leader:5000
+      - PORT=5000
+    ports:
+      - "6003:5000"
+    networks:
+      - kvnet
+
+  follower4:
+    build: ./leader-follower
+    container_name: lf-follower4
+    environment:
+      - ROLE=follower
+      - NODE_ID=follower4
+      - W=5
+      - R=1
+      - N=5
+      - LEADER_URL=http://leader:5000
+      - PORT=5000
+    ports:
+      - "6004:5000"
+    networks:
+      - kvnet
+
+networks:
+  kvnet:
+    driver: bridge

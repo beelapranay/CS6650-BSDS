@@ -1,0 +1,23 @@
+# macOS / editor noise
+.DS_Store
+
+# Local tooling
+.venv/
+.claude/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Generated load-test artifacts
+results/
+graphs/
+
+# LaTeX build artifacts
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc

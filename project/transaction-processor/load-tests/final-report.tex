@@ -45,6 +45,42 @@ The experimental plan has four parts: hot-account contention, worker crash recov
 
 AI is used as a productivity tool for scaffolding, drafting, and initial code generation, but not as the final authority on correctness. Human review remains necessary for experiment design, debugging, and interpreting tradeoffs.
 
+\section{Architecture}
+
+The current Milestone 1 system runs fully locally. A user or Locust client sends a transfer request to \texttt{api-svc} on \texttt{localhost:8080}. The API validates the request, checks idempotency, writes a \texttt{PENDING} transaction record to DynamoDB Local, and sends the transfer message to the ElasticMQ queue. The \texttt{worker-svc} polls that queue, reads the sender and receiver accounts from DynamoDB Local, checks sufficient funds, performs debit and credit updates using optimistic locking, and then updates the transaction record to \texttt{COMPLETED} or \texttt{FAILED}. After load tests, \texttt{verify\_balances.py} scans DynamoDB Local to confirm that the total balance in the system is still correct.
+
+The current local flow can be summarized with the following Mermaid diagram:
+
+\begin{verbatim}
+flowchart TD
+    U[User / Locust Load Test] --> API[api-svc on localhost:8080]
+    API --> CHECK[Validate request and check idempotency]
+    CHECK --> TX1[Write PENDING transaction to DynamoDB Local]
+    TX1 --> Q[Send message to ElasticMQ queue]
+
+    Q --> W[worker-svc polls queue]
+    W --> ACC1[Read sender account from DynamoDB Local]
+    ACC1 --> FUNDS{Sufficient funds?}
+
+    FUNDS -->|No| FAIL[Mark transaction FAILED]
+    FUNDS -->|Yes| DEBIT[Debit sender with optimistic locking]
+    DEBIT --> ACC2[Read receiver account]
+    ACC2 --> CREDIT[Credit receiver with optimistic locking]
+    CREDIT --> DONE[Mark transaction COMPLETED]
+
+    FAIL --> TX2[Update transaction record in DynamoDB Local]
+    DONE --> TX2
+
+    API --> STATUS[GET transfer status]
+    STATUS --> TX2
+
+    V[verify_balances.py] --> DB[(DynamoDB Local)]
+    TX1 --> DB
+    TX2 --> DB
+    ACC1 --> DB
+    ACC2 --> DB
+\end{verbatim}
+
 \section{Project Plan and Recent Progress}
 
 The recent milestone focused on establishing a working local prototype before moving to cloud deployment. The repository now includes both Go services, Dockerfiles, local orchestration, queue and DynamoDB wiring, a seed script for 101 accounts, Locust load tests, and a balance verification script. The local workflow is automated through \texttt{make init}, \texttt{make smoke}, \texttt{make test-load}, \texttt{make test-load-hot}, and \texttt{make verify}. Current progress shows clean builds, a working smoke test, and zero-failure local load tests with preserved balance correctness.

@@ -1,0 +1,74 @@
+version: "3.8"
+
+# Leaderless: W=N (5), R=1
+# Any node can be Write Coordinator. Reads return local value.
+
+services:
+  node0:
+    build: ./leaderless
+    container_name: ll-node0
+    environment:
+      - NODE_ID=node0
+      - N=5
+      - PEERS=http://node1:5000,http://node2:5000,http://node3:5000,http://node4:5000
+      - PORT=5000
+    ports:
+      - "7100:5000"
+    networks:
+      - kvnet
+
+  node1:
+    build: ./leaderless
+    container_name: ll-node1
+    environment:
+      - NODE_ID=node1
+      - N=5
+      - PEERS=http://node0:5000,http://node2:5000,http://node3:5000,http://node4:5000
+      - PORT=5000
+    ports:
+      - "7101:5000"
+    networks:
+      - kvnet
+
+  node2:
+    build: ./leaderless
+    container_name: ll-node2
+    environment:
+      - NODE_ID=node2
+      - N=5
+      - PEERS=http://node0:5000,http://node1:5000,http://node3:5000,http://node4:5000
+      - PORT=5000
+    ports:
+      - "7102:5000"
+    networks:
+      - kvnet
+
+  node3:
+    build: ./leaderless
+    container_name: ll-node3
+    environment:
+      - NODE_ID=node3
+      - N=5
+      - PEERS=http://node0:5000,http://node1:5000,http://node2:5000,http://node4:5000
+      - PORT=5000
+    ports:
+      - "7103:5000"
+    networks:
+      - kvnet
+
+  node4:
+    build: ./leaderless
+    container_name: ll-node4
+    environment:
+      - NODE_ID=node4
+      - N=5
+      - PEERS=http://node0:5000,http://node1:5000,http://node2:5000,http://node3:5000
+      - PORT=5000
+    ports:
+      - "7104:5000"
+    networks:
+      - kvnet
+
+networks:
+  kvnet:
+    driver: bridge
