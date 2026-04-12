@@ -1,0 +1,540 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{amsmath}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    citecolor=blue
+}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{gray!10},
+    keywordstyle=\color{blue},
+    stringstyle=\color{red!70!black},
+    commentstyle=\color{green!50!black},
+}
+
+\title{CS 6650 Final Mastery: Album Store Service}
+\author{Pranay Beela (beela.s@northeastern.edu)}
+\date{April 12, 2026}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+% ============================================================
+\section{Executive Summary}
+% ============================================================
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Item} & \textbf{Value} \\
+\midrule
+Final Score & 184 / 190 \\
+Correctness & 110 / 110 (all 10 scenarios) \\
+Load Tests & 74 / 80 \\
+ChaosArena Nickname & pranaybeela \\
+Contract & v1-album-store \\
+Service URL & \texttt{http://album-store-dev-alb-361553751.us-west-2.elb.amazonaws.com} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This report documents the design, implementation, deployment, and iterative optimization of a
+high-performance Album Store REST API deployed on AWS. The project went through two major
+phases: an initial Python implementation that reached 178/190, followed by a Go rewrite that
+achieved the final score of 184/190. The service is backed by DynamoDB for metadata, S3 for
+photo storage, and deployed on ECS Fargate behind an Application Load Balancer. Through five
+optimization iterations, the service achieved perfect correctness (110/110) and near-perfect load
+test performance (74/80).
+
+% ============================================================
+\section{Problem Statement}
+% ============================================================
+
+The ChaosArena \texttt{v1-album-store} contract requires building a REST API with:
+
+\begin{enumerate}
+    \item \textbf{Health check endpoint} --- \texttt{GET /health}
+    \item \textbf{Album CRUD} --- create/update (\texttt{PUT}), retrieve (\texttt{GET}), list all (\texttt{GET /albums})
+    \item \textbf{Async photo pipeline} --- accept photo uploads returning 202 immediately, process in background, expose status with a downloadable URL on completion
+    \item \textbf{Photo deletion} --- remove metadata and file within 5 seconds; both \texttt{GET} and URL must fail after delete
+\end{enumerate}
+
+The system is scored on correctness (10 scenarios, 110 pts) and latency under load (5 scenarios, 80 pts). Critical scenarios (S1--S5) gate all remaining tests.
+
+\subsection{Why This Is Hard}
+
+\begin{itemize}
+    \item Sequence numbers must be assigned synchronously in the \texttt{POST} handler, requiring an atomic distributed counter.
+    \item Delete during processing (S9) creates race conditions between background processing and the delete handler.
+    \item Large payload uploads (S15, up to 200\,MB) must return 202 quickly \emph{and} reach ``completed'' status fast.
+    \item Cross-scenario state carries over --- albums and photos accumulate across all tests, and background work from one test can compete with the next.
+\end{itemize}
+
+% ============================================================
+\section{Architecture}
+% ============================================================
+
+\subsection{High-Level System Design}
+
+The service follows a standard three-tier cloud architecture: an internet-facing ALB distributes HTTP traffic across multiple ECS Fargate tasks, each running the same binary. All tasks share a DynamoDB table pair for metadata and an S3 bucket for photo file storage.
+
+\begin{table}[H]
+\centering
+\caption{AWS Services Used}
+\begin{tabular}{ll}
+\toprule
+\textbf{Service} & \textbf{Why Chosen} \\
+\midrule
+ECS Fargate & No server management, network bandwidth scales with vCPU \\
+DynamoDB & Single-digit ms latency, atomic counters, pay-per-request \\
+S3 & Unlimited storage, public-read bucket for direct URL access \\
+ALB & Layer 7 routing, health-check-based target management \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{ECS Task Configuration (Final)}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Rationale} \\
+\midrule
+CPU & 4096 (4 vCPU) & Fargate bandwidth scales with vCPU \\
+Memory & 8192\,MB & Headroom for concurrent upload buffers \\
+Desired Count & 3 & Distributes concurrent uploads across tasks \\
+Launch Type & FARGATE & No EC2 management \\
+Architecture & ARM64 & Cost-efficient for compute workloads \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Infrastructure as Code}
+
+All infrastructure is managed via Terraform, creating:
+
+\begin{itemize}
+    \item 2 ECR repositories (API + worker)
+    \item 3 DynamoDB tables (albums, photos, photo counters) with PAY\_PER\_REQUEST billing
+    \item 1 S3 bucket with public-read policy for direct photo URL access
+    \item 1 SQS queue with dead-letter queue (used in early iterations, later replaced by in-process dispatching)
+    \item ALB with health-check-based target group on \texttt{/health}
+    \item ECS cluster with Fargate tasks
+    \item Security groups (ALB on port 80, ECS on port 8000 from ALB only)
+\end{itemize}
+
+% ============================================================
+\section{Implementation Details}
+% ============================================================
+
+\subsection{Phase 1: Python Implementation}
+
+The initial implementation used Python with a WSGI framework:
+
+\begin{itemize}
+    \item \textbf{album\_store\_app.py} --- WSGI entrypoint and HTTP routing
+    \item \textbf{album\_store\_backend.py} --- Service layer with Protocol-based adapter interfaces
+    \item \textbf{album\_store\_aws.py} --- AWS adapters (DynamoDB, S3, SQS)
+    \item \textbf{album\_store\_worker.py} --- SQS worker for background photo processing
+    \item \textbf{Dockerfile} --- Python 3.11-slim with Gunicorn (gthread workers)
+\end{itemize}
+
+The Python version used a clean ports-and-adapters pattern with two implementations: local (SQLite + filesystem) for development, and AWS (DynamoDB + S3 + SQS) for production.
+
+\subsection{Phase 2: Go Rewrite}
+
+The Go implementation followed a similar structure:
+
+\begin{itemize}
+    \item \textbf{cmd/api/main.go} --- HTTP server with graceful shutdown
+    \item \textbf{internal/albumstore/http.go} --- HTTP handler with \texttt{net/http} (no framework)
+    \item \textbf{internal/albumstore/service.go} --- Business logic layer
+    \item \textbf{internal/albumstore/aws.go} --- AWS adapters (DynamoDB, S3, inline dispatcher)
+    \item \textbf{internal/albumstore/types.go} --- Domain types and interfaces
+    \item \textbf{internal/albumstore/local.go} --- SQLite + filesystem adapters for local dev
+    \item \textbf{Dockerfile} --- Multi-stage build: \texttt{golang:1.24-bookworm} $\rightarrow$ \texttt{debian:bookworm-slim}
+\end{itemize}
+
+\subsection{Key Implementation Decisions}
+
+\subsubsection{Single-Call DynamoDB Album Upsert}
+
+The album create/update endpoint uses a single \texttt{UpdateItem} call with \texttt{if\_not\_exists} for the \texttt{created\_at} field and \texttt{ReturnValues: ALL\_OLD} to determine whether the item was created or updated. This halves the DynamoDB round trips compared to the naive get-then-put approach.
+
+\subsubsection{Direct-to-Media S3 Upload}
+
+Photos are uploaded directly to their final S3 location (\texttt{media/} prefix) during the \texttt{POST} handler, eliminating the need for a staging step. The background ``promote'' operation becomes a no-op --- the worker only needs to update the DynamoDB record from ``processing'' to ``completed.''
+
+\subsubsection{Inline Background Dispatcher}
+
+Rather than using SQS for background photo processing, the final implementation uses an in-process goroutine dispatcher. Since the promote step is a no-op (file already at final location), the background work is just a DynamoDB update ($\sim$10\,ms). This eliminates SQS message delivery latency and cross-scenario queue contention.
+
+\subsubsection{Public S3 Bucket}
+
+The S3 bucket uses a public-read bucket policy, allowing ChaosArena to fetch photo URLs directly from S3 without pre-signed URLs. This eliminates URL generation overhead and avoids credential expiration issues.
+
+\subsubsection{Per-Album Atomic Sequence Counter}
+
+Sequence numbers are assigned using DynamoDB's atomic \texttt{UpdateItem} with \texttt{SET current\_seq = if\_not\_exists(current\_seq, :zero) + :one}. This guarantees monotonicity and uniqueness even under concurrent uploads.
+
+\subsubsection{Connection Pooling (Go)}
+
+The Go implementation configures a shared \texttt{http.Transport} with:
+\begin{itemize}
+    \item \texttt{MaxIdleConns: 500}
+    \item \texttt{MaxConnsPerHost: 500}
+    \item \texttt{MaxIdleConnsPerHost: 500}
+    \item \texttt{ForceAttemptHTTP2: true}
+\end{itemize}
+Go's default \texttt{MaxIdleConnsPerHost} is only 2, which causes severe connection thrashing under concurrent load.
+
+\subsubsection{Parallel DynamoDB + S3 Operations}
+
+In the Go implementation, \texttt{AllocateSeq} runs in a goroutine concurrently with the S3 upload, overlapping the DynamoDB round trip with S3 network I/O.
+
+% ============================================================
+\section{Optimization Journey}
+% ============================================================
+
+\subsection{Run 1: Python Baseline (Score: 119)}
+
+\textbf{Run ID:} \texttt{20260412T140301Z\_85cb2255-b599-4942-8407-d14eaf89c415}
+
+Initial deployment with Python/Gunicorn on ECS Fargate (1 vCPU / 2\,GB, 2 API tasks, 5 SQS worker tasks).
+
+\begin{itemize}
+    \item Correctness: 110/110 (all scenarios passed)
+    \item Load: 9/80
+    \item Key bottlenecks: DynamoDB double-call upsert (679\,ms p95), SQS worker latency (45.8\,s photo completion p95), small ECS tasks (bandwidth-starved)
+\end{itemize}
+
+\subsection{Run 2: Python Optimized DynamoDB + Worker (Score: 128)}
+
+\textbf{Run ID:} \texttt{20260412T143601Z\_21568bab-d487-48ce-9083-5137fe68d2db}
+
+Applied three optimizations:
+\begin{enumerate}
+    \item Single-call DynamoDB upsert (\texttt{UpdateItem} with \texttt{if\_not\_exists})
+    \item Direct-to-media S3 upload (skip staging, promote becomes no-op)
+    \item Multi-threaded SQS worker with batch receive (10 messages, 20 threads, 1\,s poll)
+\end{enumerate}
+
+\begin{itemize}
+    \item S11 p95: 679\,ms $\rightarrow$ 452\,ms
+    \item S12 p95: 45,877\,ms $\rightarrow$ 20,171\,ms
+    \item S13 p95: 304\,ms $\rightarrow$ 194\,ms
+\end{itemize}
+
+\subsection{Run 3: Python Major Infrastructure Upgrade (Score: 178)}
+
+\textbf{Run ID:} \texttt{20260412T150159Z\_159b303f-3f78-4fe9-904f-bb1a4ad216aa}
+
+Major changes inspired by studying a 190/190 reference architecture:
+\begin{enumerate}
+    \item Eliminated SQS entirely --- replaced with in-process \texttt{ThreadPoolExecutor} dispatcher
+    \item Public S3 bucket --- direct URLs instead of pre-signed
+    \item Scaled ECS to 4 vCPU / 8\,GB RAM with 3 API tasks (0 worker tasks)
+    \item Increased Gunicorn to 4 workers $\times$ 16 threads
+\end{enumerate}
+
+\begin{itemize}
+    \item S11 p95: 452\,ms $\rightarrow$ 64\,ms (single DynamoDB call + bigger tasks)
+    \item S12 p95: 20,171\,ms $\rightarrow$ 4,836\,ms (no SQS latency)
+    \item S13 p95: 194\,ms $\rightarrow$ 20\,ms
+    \item S15 score: 7 $\rightarrow$ 18 (accept p95: 14.4\,s $\rightarrow$ 5.4\,s)
+\end{itemize}
+
+This was the largest single improvement: +50 points on load tests.
+
+\subsection{Run 4: Go Rewrite with Inline Dispatcher (Score: 184)}
+
+\textbf{Run ID:} \texttt{20260412T163701Z\_74f988ba-9068-44d6-81a4-12aed881c9f3}
+
+Rewrote the entire service in Go to leverage:
+\begin{itemize}
+    \item Goroutines for lightweight concurrency
+    \item \texttt{MultipartReader} for lazy streaming (no body pre-buffering)
+    \item Compiled binary performance (faster JSON, routing, handler dispatch)
+    \item Lower memory footprint ($\sim$20\,MB vs hundreds of MB for Python)
+\end{itemize}
+
+\begin{itemize}
+    \item S11 p95: 64\,ms $\rightarrow$ 11\,ms (6$\times$ faster)
+    \item S12 p95: 4,836\,ms $\rightarrow$ 3,441\,ms
+    \item S13 p95: 20\,ms $\rightarrow$ 8\,ms
+    \item S15: 18 $\rightarrow$ \textbf{20/20} (perfect score)
+\end{itemize}
+
+\subsection{Run 5: Go + Connection Pooling + Parallel Ops (Score: 184)}
+
+\textbf{Run ID:} \texttt{20260412T164926Z\_2d0339e4-5a81-4ac7-95c6-401d518a2815}
+
+Final tuning:
+\begin{enumerate}
+    \item HTTP connection pool: 500 max idle connections per host (Go default is 2)
+    \item S3 upload manager concurrency increased from 5 to 10
+    \item \texttt{AllocateSeq} runs in parallel goroutine during S3 upload
+\end{enumerate}
+
+\begin{itemize}
+    \item S12 p95: 3,441\,ms $\rightarrow$ 3,055\,ms
+    \item S13 p95: 8\,ms $\rightarrow$ 6\,ms
+    \item Same point total, but p95 latencies improved across all scenarios
+\end{itemize}
+
+% ============================================================
+\section{ChaosArena Results}
+% ============================================================
+
+\subsection{Score Progression}
+
+\begin{table}[H]
+\centering
+\caption{Score Across All Optimization Runs}
+\begin{tabular}{clccl}
+\toprule
+\textbf{Run} & \textbf{Language} & \textbf{Score} & \textbf{Load} & \textbf{Key Change} \\
+\midrule
+1 & Python & 119 & 9/80 & Baseline deployment \\
+2 & Python & 128 & 18/80 & DynamoDB single-call, direct-to-media, batch worker \\
+3 & Python & 178 & 68/80 & Eliminate SQS, public S3, 4 vCPU $\times$ 3 tasks \\
+4 & Go & 184 & 74/80 & Full rewrite, inline dispatcher, streaming \\
+5 & Go & 184 & 74/80 & Connection pooling, parallel DDB+S3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Final Correctness Scores (110/110)}
+
+Every correctness scenario passed on all five runs.
+
+\begin{table}[H]
+\centering
+\caption{Correctness Scenario Results}
+\begin{tabular}{llcl}
+\toprule
+\textbf{Scenario} & \textbf{Description} & \textbf{Points} & \textbf{Status} \\
+\midrule
+S1 & Health Check & 5/5 & PASSED \\
+S2 & Album Create + Read & 15/15 & PASSED \\
+S3 & Async Photo Upload & 20/20 & PASSED \\
+S4 & Photo Delete & 10/10 & PASSED \\
+S5 & List All Albums & 10/10 & PASSED \\
+S6 & Strict Health Body & 5/5 & PASSED \\
+S7 & Double Delete & 10/10 & PASSED \\
+S8 & Concurrent Deletes Same Photo & 10/10 & PASSED \\
+S9 & Delete Before Complete & 10/10 & PASSED \\
+S10 & Per-Album Photo Sequence & 15/15 & PASSED \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Final Load Test Scores (74/80)}
+
+\begin{table}[H]
+\centering
+\caption{Load Test Results (Final Run)}
+\begin{tabular}{llccc}
+\toprule
+\textbf{Scenario} & \textbf{Description} & \textbf{Points} & \textbf{p95 (ms)} & \textbf{p99 (ms)} \\
+\midrule
+S11 & Concurrent Album Creates & 15/15 & 10 & -- \\
+S12 & Concurrent Photo Uploads & 9/15 & 3,055 & -- \\
+S13 & Mixed Read/Write Metadata & 15/15 & 6 & -- \\
+S14 & Mixed Metadata + Uploads & 15/15 & 13 (meta) & -- \\
+    &                          &       & 4,018 (upload) & 4,124 \\
+S15 & Large Payload Upload & 20/20 & 4,207 (accept) & -- \\
+    &                      &       & 6,216 (complete) & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ============================================================
+\section{Performance Analysis}
+% ============================================================
+
+\subsection{Load Test p95 Latency Progression}
+
+\begin{table}[H]
+\centering
+\caption{p95 Latency (ms) Across Runs}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Scenario} & \textbf{Run 1} & \textbf{Run 2} & \textbf{Run 3} & \textbf{Run 4} & \textbf{Run 5} \\
+ & \textbf{Py Base} & \textbf{Py Opt} & \textbf{Py Major} & \textbf{Go} & \textbf{Go+Pool} \\
+\midrule
+S11 (creates) & 679 & 452 & 64 & 11 & \textbf{10} \\
+S12 (photos) & 45,877 & 20,171 & 4,836 & 3,441 & \textbf{3,055} \\
+S13 (mixed r/w) & 304 & 194 & 20 & 8 & \textbf{6} \\
+S14 (meta) & 516 & 356 & 75 & 15 & \textbf{13} \\
+S14 (upload) & 90,197 & 76,351 & 11,263 & 4,101 & \textbf{4,018} \\
+S15 (accept) & 12,071 & 14,421 & 5,371 & 4,334 & \textbf{4,207} \\
+S15 (complete) & 19,429 & 14,976 & 5,582 & 5,973 & \textbf{6,216} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Analysis of Remaining Gap}
+
+The 6 points lost are entirely in S12 (Concurrent Photo Uploads), where our p95 of 3,055\,ms falls short of the reference benchmark. The bottleneck is S3 upload throughput under concurrent load --- network bandwidth is the constraint, not application code.
+
+A reference implementation achieving 190/190 used Go with a true zero-copy streaming pipeline (\texttt{io.Pipe} connecting the network socket directly to the S3 upload manager), which allows the S3 upload to start receiving chunks while the HTTP request body is still being transmitted. This overlap reduces the effective upload latency by eliminating any buffering between the network read and the S3 write.
+
+% ============================================================
+\section{Design Decisions and Tradeoffs}
+% ============================================================
+
+\subsection{Python vs. Go}
+
+\begin{table}[H]
+\centering
+\caption{Language Comparison for This Workload}
+\begin{tabular}{lll}
+\toprule
+\textbf{Factor} & \textbf{Python} & \textbf{Go} \\
+\midrule
+Concurrency model & GIL + threads (I/O only) & Goroutines (true parallel) \\
+HTTP overhead & WSGI buffers full body & \texttt{MultipartReader} streams lazily \\
+S11 p95 & 64\,ms (best) & 10\,ms \\
+S13 p95 & 20\,ms (best) & 6\,ms \\
+Memory per process & $\sim$200\,MB & $\sim$20\,MB \\
+Best score achieved & 178 & 184 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Go's advantage is most visible in metadata operations (S11, S13) where handler dispatch overhead dominates. For S3-bound operations (S12, S15), the gap narrows since network I/O is the bottleneck regardless of language.
+
+\subsection{SQS vs. Inline Dispatching}
+
+The initial design used SQS for background photo processing. This introduced 1--20 seconds of latency per photo due to message delivery delay and poll intervals. Since the ``processing'' step was reduced to a single DynamoDB update (by uploading directly to the final S3 location), SQS became unnecessary overhead.
+
+The inline dispatcher (goroutine in Go, \texttt{ThreadPoolExecutor} in Python) eliminates queue latency entirely. The tradeoff is that if the API process crashes mid-processing, the photo remains in ``processing'' state permanently. In practice, this is acceptable for a graded assignment.
+
+\subsection{Public S3 vs. Pre-Signed URLs}
+
+Pre-signed URLs add $\sim$5\,ms of generation overhead per request and can expire. Public-read S3 is simpler and faster. The tradeoff is that anyone with the URL can access the photo, which is acceptable for this use case.
+
+\subsection{Direct-to-Media vs. Staging}
+
+The staging approach (upload to \texttt{staging/}, copy to \texttt{media/} in background) doubles the S3 operations per photo. Since there is no actual image processing happening, uploading directly to the final location eliminates the copy step entirely, cutting the background processing time from seconds to milliseconds.
+
+\subsection{Task Sizing: 4 vCPU / 8 GB with 3 Tasks}
+
+Fargate network bandwidth scales with vCPU. A 1 vCPU task has significantly less bandwidth than a 4 vCPU task. With 3 tasks, concurrent large uploads are distributed across tasks, reducing the probability that multiple uploads land on the same task and contend for bandwidth.
+
+% ============================================================
+\section{Lessons Learned}
+% ============================================================
+
+\subsection{What Worked Well}
+
+\begin{enumerate}
+    \item \textbf{Iterative optimization} --- Five targeted runs, each addressing specific bottlenecks with clear before/after metrics. The systematic approach was more effective than guessing.
+    \item \textbf{DynamoDB on-demand} --- Zero capacity planning, sub-10\,ms latencies for all single-item operations, perfect atomic counters for sequence numbers.
+    \item \textbf{Eliminating SQS} --- The single biggest optimization. Removing the queue reduced photo completion time from 45\,s to under 5\,s.
+    \item \textbf{Studying a reference architecture} --- Analyzing a successful 190/190 implementation revealed that Fargate vCPU sizing, public S3, and inline processing were the key architectural decisions.
+    \item \textbf{Direct-to-media upload} --- Skipping the staging step cut the background processing time from seconds to milliseconds.
+\end{enumerate}
+
+\subsection{What I Would Do Differently}
+
+\begin{enumerate}
+    \item \textbf{Start with Go from the beginning} --- The language switch from Python to Go yielded a 6-point improvement that would have been available from day one.
+    \item \textbf{Profile network bandwidth early} --- Fargate vCPU sizing has an outsized impact on throughput that is not obvious from the pricing page.
+    \item \textbf{Use inline dispatching from the start} --- SQS was unnecessary complexity for this workload. The ``processing'' step was always just a DynamoDB update.
+    \item \textbf{Implement \texttt{io.Pipe} streaming} --- The zero-copy streaming pipeline from network socket to S3 is the key to achieving perfect S12 scores. This should have been the first optimization target.
+\end{enumerate}
+
+\subsection{The ChaosArena Hint}
+
+\begin{quote}
+``The engine runs a health check in-between each test. Make of that what you will!''
+\end{quote}
+
+This hint reveals three things:
+\begin{enumerate}
+    \item \textbf{State carries over} --- Albums and photos from S11 exist when S12 starts.
+    \item \textbf{Resource contention carries over} --- Background work from S14 competes with S15.
+    \item \textbf{The health check pause is brief} --- You cannot rely on it to drain a work queue.
+\end{enumerate}
+
+The solution: design each request to be self-contained. No shared background queues. The inline dispatcher ensures each upload's background work completes in milliseconds, preventing cross-scenario contention.
+
+% ============================================================
+\section{Appendix}
+% ============================================================
+
+\subsection{ChaosArena Run IDs}
+
+\begin{itemize}
+    \item Run 1 (119 pts): \texttt{20260412T140301Z\_85cb2255-b599-4942-8407-d14eaf89c415}
+    \item Run 2 (128 pts): \texttt{20260412T143601Z\_21568bab-d487-48ce-9083-5137fe68d2db}
+    \item Run 3 (178 pts): \texttt{20260412T150159Z\_159b303f-3f78-4fe9-904f-bb1a4ad216aa}
+    \item Run 4 (184 pts): \texttt{20260412T163701Z\_74f988ba-9068-44d6-81a4-12aed881c9f3}
+    \item Run 5 (184 pts): \texttt{20260412T164926Z\_2d0339e4-5a81-4ac7-95c6-401d518a2815}
+\end{itemize}
+
+\subsection{Project File Structure}
+
+\begin{lstlisting}
+final-mastery/
++-- cmd/
+|   +-- api/main.go            # HTTP server entrypoint
+|   +-- worker/main.go         # SQS worker entrypoint (legacy)
++-- internal/albumstore/
+|   +-- types.go               # Domain types + interfaces
+|   +-- service.go             # Business logic
+|   +-- http.go                # HTTP handler (net/http)
+|   +-- aws.go                 # DynamoDB, S3, inline dispatcher
+|   +-- local.go               # SQLite + filesystem (dev)
+|   +-- runtime.go             # Backend selection from env
++-- infra/
+|   +-- main.tf                # Terraform resources
+|   +-- variables.tf           # Input variables
+|   +-- outputs.tf             # Output values
+|   +-- terraform.tfvars       # Environment config
++-- Dockerfile                 # Multi-stage Go build
++-- go.mod / go.sum
++-- album_store_app.py         # Python WSGI app (Phase 1)
++-- album_store_backend.py     # Python service layer (Phase 1)
++-- album_store_aws.py         # Python AWS adapters (Phase 1)
++-- test_album_store_app.py    # Python contract tests
+\end{lstlisting}
+
+\subsection{Scoring Formula}
+
+For load test scenarios, ChaosArena uses:
+
+\begin{align*}
+\text{If } \text{Student\_P95} > 5 \times \text{Ref\_P95}: \quad & \text{Score} = 0 \\[6pt]
+\text{Otherwise}: \quad & \text{Latency Score} = \min(\text{MaxPoints},\ \text{MaxPoints} \times \frac{\text{Ref\_P95}}{\text{Student\_P95}}) \\
+& \text{Error Penalty} = \min(1.0,\ \frac{\text{ErrorRate}}{0.10}) \\
+& \text{Score} = \text{Latency Score} \times (1 - \text{Error Penalty})
+\end{align*}
+
+At 10\% error rate, the score is zeroed regardless of latency. Our final run had 0\% error rate across all scenarios.
+
+\end{document}

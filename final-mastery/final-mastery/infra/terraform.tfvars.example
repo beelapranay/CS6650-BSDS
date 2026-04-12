@@ -1,0 +1,21 @@
+aws_region   = "us-east-1"
+aws_account_id = "123456789012"
+
+# LabRole only. Leave unchanged.
+lab_role_name = "LabRole"
+provider_assume_lab_role = true
+
+# ECS uses LabRole directly for task execution and runtime access.
+# This requires LabRole to be trusted by ecs-tasks.amazonaws.com.
+
+project_name = "album-store"
+environment  = "dev"
+
+# Recommended: provide at least two public subnets for the ALB and ECS services.
+# subnet_ids = ["subnet-aaaaaaa", "subnet-bbbbbbb"]
+
+app_image_tag    = "latest"
+worker_image_tag = "latest"
+
+api_desired_count    = 1
+worker_desired_count = 1

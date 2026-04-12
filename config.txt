@@ -5,3 +5,20 @@ aws sts get-caller-identity
 172.31.56.251
 
 python -m locust -f locustfile.py --host http://localhost:8080
+
+api_ecr_repository_url = "770561854863.dkr.ecr.us-west-2.amazonaws.com/album-store-dev-api"
+worker_ecr_repository_url = "770561854863.dkr.ecr.us-west-2.amazonaws.com/album-store-dev-worker"
+
+alb_dns_name = "album-store-dev-alb-361553751.us-west-2.elb.amazonaws.com"
+albums_table_name = "album-store-dev-albums"
+api_ecr_repository_url = "770561854863.dkr.ecr.us-west-2.amazonaws.com/album-store-dev-api"
+api_service_name = "album-store-dev-api"
+base_url = "http://album-store-dev-alb-361553751.us-west-2.elb.amazonaws.com"
+ecs_cluster_name = "album-store-dev-cluster"
+lab_role_arn = "arn:aws:iam::770561854863:role/LabRole"
+photo_bucket_name = "album-store-dev-bcxgrbk2"
+photo_counters_table_name = "album-store-dev-photo-counters"
+photo_queue_url = "https://sqs.us-west-2.amazonaws.com/770561854863/album-store-dev-photo-jobs"
+photos_table_name = "album-store-dev-photos"
+worker_ecr_repository_url = "770561854863.dkr.ecr.us-west-2.amazonaws.com/album-store-dev-worker"
+worker_service_name = "album-store-dev-worker"
