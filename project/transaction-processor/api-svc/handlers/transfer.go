@@ -32,6 +32,10 @@ func (h *Handler) PostTransfer(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "transaction_id, from_account, to_account, and amount > 0 are required"})
 		return
 	}
+	if req.FromAccount == req.ToAccount {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "from_account and to_account must be different"})
+		return
+	}
 
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()

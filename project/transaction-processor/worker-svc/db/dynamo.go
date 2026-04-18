@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -25,6 +26,7 @@ type DynamoClient struct {
 	client        *dynamodb.Client
 	accountsTable string
 	txTable       string
+	locksTable    string
 }
 
 func NewDynamoClient(ctx context.Context) (*DynamoClient, error) {
@@ -36,6 +38,7 @@ func NewDynamoClient(ctx context.Context) (*DynamoClient, error) {
 		client:        dynamodb.NewFromConfig(cfg),
 		accountsTable: os.Getenv("DYNAMODB_ACCOUNTS_TABLE"),
 		txTable:       os.Getenv("DYNAMODB_TRANSACTIONS_TABLE"),
+		locksTable:    os.Getenv("DYNAMODB_LOCKS_TABLE"),
 	}, nil
 }
 
@@ -118,6 +121,44 @@ func (c *DynamoClient) UpdateTransactionStatus(ctx context.Context, id string, s
 			":status": &types.AttributeValueMemberS{Value: status},
 		},
 	})
+	return err
+}
+
+func (c *DynamoClient) AcquireAccountLock(ctx context.Context, accountID, ownerTxID string, now time.Time, ttl time.Duration) error {
+	expiresAt := now.Add(ttl).Unix()
+	_, err := c.client.PutItem(ctx, &dynamodb.PutItemInput{
+		TableName: aws.String(c.locksTable),
+		Item: map[string]types.AttributeValue{
+			"account_id":  &types.AttributeValueMemberS{Value: accountID},
+			"owner_tx_id": &types.AttributeValueMemberS{Value: ownerTxID},
+			"expires_at":  &types.AttributeValueMemberN{Value: strconv.FormatInt(expiresAt, 10)},
+		},
+		ConditionExpression: aws.String("attribute_not_exists(account_id) OR expires_at < :now OR owner_tx_id = :owner"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":now":   &types.AttributeValueMemberN{Value: strconv.FormatInt(now.Unix(), 10)},
+			":owner": &types.AttributeValueMemberS{Value: ownerTxID},
+		},
+	})
+	return err
+}
+
+func (c *DynamoClient) ReleaseAccountLock(ctx context.Context, accountID, ownerTxID string) error {
+	_, err := c.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
+		TableName: aws.String(c.locksTable),
+		Key: map[string]types.AttributeValue{
+			"account_id": &types.AttributeValueMemberS{Value: accountID},
+		},
+		ConditionExpression: aws.String("owner_tx_id = :owner"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":owner": &types.AttributeValueMemberS{Value: ownerTxID},
+		},
+	})
+	if err != nil {
+		var condErr *types.ConditionalCheckFailedException
+		if errors.As(err, &condErr) {
+			return nil
+		}
+	}
 	return err
 }
 
@@ -205,6 +246,91 @@ func (c *DynamoClient) CompleteTransfer(ctx context.Context, txID string, sender
 				},
 			},
 		},
+	})
+	return err
+}
+
+func (c *DynamoClient) CompleteTransferPessimistic(ctx context.Context, txID string, sender *Account, receiver *Account, amount float64) error {
+	items := []types.TransactWriteItem{
+		{
+			Update: &types.Update{
+				TableName: aws.String(c.accountsTable),
+				Key: map[string]types.AttributeValue{
+					"account_id": &types.AttributeValueMemberS{Value: sender.AccountID},
+				},
+				UpdateExpression:    aws.String("SET balance = :new_balance, #ver = :new_version"),
+				ConditionExpression: aws.String("balance >= :amount"),
+				ExpressionAttributeNames: map[string]string{
+					"#ver": "version",
+				},
+				ExpressionAttributeValues: map[string]types.AttributeValue{
+					":new_balance": &types.AttributeValueMemberN{Value: formatFloat(sender.Balance - amount)},
+					":new_version": &types.AttributeValueMemberN{Value: formatInt(sender.Version + 1)},
+					":amount":      &types.AttributeValueMemberN{Value: formatFloat(amount)},
+				},
+			},
+		},
+		{
+			Update: &types.Update{
+				TableName: aws.String(c.accountsTable),
+				Key: map[string]types.AttributeValue{
+					"account_id": &types.AttributeValueMemberS{Value: receiver.AccountID},
+				},
+				UpdateExpression: aws.String("SET balance = :new_balance, #ver = :new_version"),
+				ExpressionAttributeNames: map[string]string{
+					"#ver": "version",
+				},
+				ExpressionAttributeValues: map[string]types.AttributeValue{
+					":new_balance": &types.AttributeValueMemberN{Value: formatFloat(receiver.Balance + amount)},
+					":new_version": &types.AttributeValueMemberN{Value: formatInt(receiver.Version + 1)},
+				},
+			},
+		},
+		{
+			Update: &types.Update{
+				TableName: aws.String(c.txTable),
+				Key: map[string]types.AttributeValue{
+					"transaction_id": &types.AttributeValueMemberS{Value: txID},
+				},
+				UpdateExpression:    aws.String("SET #s = :completed"),
+				ConditionExpression: aws.String("#s = :pending"),
+				ExpressionAttributeNames: map[string]string{
+					"#s": "status",
+				},
+				ExpressionAttributeValues: map[string]types.AttributeValue{
+					":pending":   &types.AttributeValueMemberS{Value: "PENDING"},
+					":completed": &types.AttributeValueMemberS{Value: "COMPLETED"},
+				},
+			},
+		},
+		{
+			Delete: &types.Delete{
+				TableName: aws.String(c.locksTable),
+				Key: map[string]types.AttributeValue{
+					"account_id": &types.AttributeValueMemberS{Value: sender.AccountID},
+				},
+				ConditionExpression: aws.String("owner_tx_id = :owner"),
+				ExpressionAttributeValues: map[string]types.AttributeValue{
+					":owner": &types.AttributeValueMemberS{Value: txID},
+				},
+			},
+		},
+		{
+			Delete: &types.Delete{
+				TableName: aws.String(c.locksTable),
+				Key: map[string]types.AttributeValue{
+					"account_id": &types.AttributeValueMemberS{Value: receiver.AccountID},
+				},
+				ConditionExpression: aws.String("owner_tx_id = :owner"),
+				ExpressionAttributeValues: map[string]types.AttributeValue{
+					":owner": &types.AttributeValueMemberS{Value: txID},
+				},
+			},
+		},
+	}
+
+	_, err := c.client.TransactWriteItems(ctx, &dynamodb.TransactWriteItemsInput{
+		TransactItems: items,
 	})
 	return err
 }

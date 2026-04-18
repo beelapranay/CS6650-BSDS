@@ -99,6 +99,17 @@ resource "aws_dynamodb_table" "transactions" {
   }
 }
 
+resource "aws_dynamodb_table" "account_locks" {
+  name         = "${local.name_prefix}-account-locks"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "account_id"
+
+  attribute {
+    name = "account_id"
+    type = "S"
+  }
+}
+
 resource "aws_security_group" "alb" {
   name        = "${local.name_prefix}-alb"
   description = "Public access for the transaction processor ALB"
@@ -216,6 +227,7 @@ resource "aws_ecs_task_definition" "api" {
         { name = "AWS_REGION", value = var.aws_region },
         { name = "DYNAMODB_ACCOUNTS_TABLE", value = aws_dynamodb_table.accounts.name },
         { name = "DYNAMODB_TRANSACTIONS_TABLE", value = aws_dynamodb_table.transactions.name },
+        { name = "DYNAMODB_LOCKS_TABLE", value = aws_dynamodb_table.account_locks.name },
         { name = "SQS_QUEUE_URL", value = aws_sqs_queue.transfers.id },
         { name = "PORT", value = "8080" }
       ]
@@ -249,7 +261,10 @@ resource "aws_ecs_task_definition" "worker" {
         { name = "AWS_REGION", value = var.aws_region },
         { name = "DYNAMODB_ACCOUNTS_TABLE", value = aws_dynamodb_table.accounts.name },
         { name = "DYNAMODB_TRANSACTIONS_TABLE", value = aws_dynamodb_table.transactions.name },
+        { name = "DYNAMODB_LOCKS_TABLE", value = aws_dynamodb_table.account_locks.name },
         { name = "SQS_QUEUE_URL", value = aws_sqs_queue.transfers.id },
+        { name = "LOCKING_MODE", value = var.locking_mode },
+        { name = "LOCK_TTL_SECONDS", value = tostring(var.lock_ttl_seconds) },
         { name = "PRE_COMMIT_DELAY_MS", value = tostring(var.pre_commit_delay_ms) }
       ]
       logConfiguration = {
@@ -288,6 +303,7 @@ resource "aws_ecs_service" "api" {
     aws_sqs_queue.transfers,
     aws_dynamodb_table.accounts,
     aws_dynamodb_table.transactions,
+    aws_dynamodb_table.account_locks,
   ]
 }
 
@@ -308,5 +324,6 @@ resource "aws_ecs_service" "worker" {
     aws_sqs_queue.transfers,
     aws_dynamodb_table.accounts,
     aws_dynamodb_table.transactions,
+    aws_dynamodb_table.account_locks,
   ]
 }

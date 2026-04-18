@@ -28,6 +28,11 @@ output "transactions_table_name" {
   value       = aws_dynamodb_table.transactions.name
 }
 
+output "account_locks_table_name" {
+  description = "DynamoDB lock table name used by pessimistic mode."
+  value       = aws_dynamodb_table.account_locks.name
+}
+
 output "queue_url" {
   description = "Primary SQS queue URL for transfers."
   value       = aws_sqs_queue.transfers.id

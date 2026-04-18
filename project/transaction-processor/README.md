@@ -1,6 +1,6 @@
 # Transaction Processor
 
-Distributed financial transaction processor for CS6650. The system exposes an HTTP API that records transfers, queues them asynchronously, and applies them with optimistic concurrency control in DynamoDB.
+Distributed financial transaction processor for CS6650. The system exposes an HTTP API that records transfers, queues them asynchronously, and applies them in DynamoDB using either optimistic or pessimistic concurrency control.
 
 ## Current milestone status
 
@@ -17,10 +17,14 @@ Weeks 3-4 completed in this repo:
 - Terraform under [`infra/`](./infra) provisions ECR, ECS/Fargate, ALB, SQS, and DynamoDB for AWS deployment.
 - Cloud bootstrap scripts handle image push, account seeding, and smoke testing.
 
+Weeks 5-6 completed in this repo:
+- `worker-svc` supports both `optimistic` and `pessimistic` locking modes.
+- Pessimistic mode uses an `account_locks` table with short-lived leases and ordered lock acquisition to serialize contended transfers.
+- `scripts/compare_locking_modes.sh` runs the hot-account experiment across both modes, verifies balances after each run, and emits a markdown summary from the Locust CSV exports.
+
 Not implemented yet:
-- Week 5-6 pessimistic-locking path and comparative experiment.
 - Week 5-6 horizontal scaling experiment results.
-- Week 7-8 analysis artifacts beyond the draft reports already in the repository.
+- Week 7-8 final synthesized charts and narrative based on a full cloud experiment run.
 
 ## Local workflow
 
@@ -39,6 +43,20 @@ make smoke
 make test-load
 make verify
 ```
+
+Switch the worker into pessimistic mode locally:
+
+```bash
+LOCKING_MODE=pessimistic make init
+```
+
+Run the optimistic-vs-pessimistic comparison harness:
+
+```bash
+make compare-locking
+```
+
+The comparison artifacts land under `load-tests/experiments/<timestamp>/` and include raw Locust CSV/HTML output plus a generated `summary.md`.
 
 Run the week 3-4 crash-recovery experiment locally:
 
@@ -70,6 +88,7 @@ Useful Terraform outputs:
 - `worker_ecr_repository_url`
 - `accounts_table_name`
 - `transactions_table_name`
+- `account_locks_table_name`
 - `queue_url`
 
 ## Files

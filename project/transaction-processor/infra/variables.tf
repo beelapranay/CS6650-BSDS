@@ -98,3 +98,15 @@ variable "pre_commit_delay_ms" {
   type        = number
   default     = 0
 }
+
+variable "locking_mode" {
+  description = "Worker-side concurrency control mode."
+  type        = string
+  default     = "optimistic"
+}
+
+variable "lock_ttl_seconds" {
+  description = "Lease duration for pessimistic account locks."
+  type        = number
+  default     = 90
+}

@@ -17,5 +17,8 @@ worker_image_tag = "latest"
 api_desired_count    = 1
 worker_desired_count = 1
 
+locking_mode     = "optimistic"
+lock_ttl_seconds = 90
+
 # Set this above zero only when deliberately running the worker-crash experiment.
 pre_commit_delay_ms = 0
