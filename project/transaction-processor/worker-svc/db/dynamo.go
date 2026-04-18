@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"errors"
 	"os"
 	"strconv"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"transaction-processor/api-svc/models"
 )
 
 type Account struct {
@@ -58,6 +60,28 @@ func (c *DynamoClient) GetAccount(ctx context.Context, id string) (*Account, err
 	return &acct, nil
 }
 
+func (c *DynamoClient) GetTransaction(ctx context.Context, id string) (*models.Transaction, error) {
+	out, err := c.client.GetItem(ctx, &dynamodb.GetItemInput{
+		TableName: aws.String(c.txTable),
+		Key: map[string]types.AttributeValue{
+			"transaction_id": &types.AttributeValueMemberS{Value: id},
+		},
+		ConsistentRead: aws.Bool(true),
+	})
+	if err != nil {
+		return nil, err
+	}
+	if out.Item == nil {
+		return nil, nil
+	}
+
+	var tx models.Transaction
+	if err := attributevalue.UnmarshalMap(out.Item, &tx); err != nil {
+		return nil, err
+	}
+	return &tx, nil
+}
+
 // UpdateBalanceOptimistic does a conditional update: only succeeds if version matches.
 // Returns a ConditionalCheckFailedException (wrapped) if version has changed.
 func (c *DynamoClient) UpdateBalanceOptimistic(ctx context.Context, id string, newBalance float64, expectedVersion int) error {
@@ -72,9 +96,9 @@ func (c *DynamoClient) UpdateBalanceOptimistic(ctx context.Context, id string, n
 			"#ver": "version",
 		},
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":new_balance":       &types.AttributeValueMemberN{Value: formatFloat(newBalance)},
-			":new_version":       &types.AttributeValueMemberN{Value: formatInt(expectedVersion + 1)},
-			":expected_version":  &types.AttributeValueMemberN{Value: formatInt(expectedVersion)},
+			":new_balance":      &types.AttributeValueMemberN{Value: formatFloat(newBalance)},
+			":new_version":      &types.AttributeValueMemberN{Value: formatInt(expectedVersion + 1)},
+			":expected_version": &types.AttributeValueMemberN{Value: formatInt(expectedVersion)},
 		},
 	})
 	return err
@@ -97,14 +121,104 @@ func (c *DynamoClient) UpdateTransactionStatus(ctx context.Context, id string, s
 	return err
 }
 
+func (c *DynamoClient) MarkTransactionFailedIfPending(ctx context.Context, id string) (bool, error) {
+	_, err := c.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+		TableName: aws.String(c.txTable),
+		Key: map[string]types.AttributeValue{
+			"transaction_id": &types.AttributeValueMemberS{Value: id},
+		},
+		UpdateExpression:    aws.String("SET #s = :failed"),
+		ConditionExpression: aws.String("#s = :pending"),
+		ExpressionAttributeNames: map[string]string{
+			"#s": "status",
+		},
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":pending": &types.AttributeValueMemberS{Value: "PENDING"},
+			":failed":  &types.AttributeValueMemberS{Value: "FAILED"},
+		},
+	})
+	if err != nil {
+		var condErr *types.ConditionalCheckFailedException
+		if errors.As(err, &condErr) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+func (c *DynamoClient) CompleteTransfer(ctx context.Context, txID string, sender *Account, receiver *Account, amount float64) error {
+	_, err := c.client.TransactWriteItems(ctx, &dynamodb.TransactWriteItemsInput{
+		TransactItems: []types.TransactWriteItem{
+			{
+				Update: &types.Update{
+					TableName: aws.String(c.accountsTable),
+					Key: map[string]types.AttributeValue{
+						"account_id": &types.AttributeValueMemberS{Value: sender.AccountID},
+					},
+					UpdateExpression:    aws.String("SET balance = :new_balance, #ver = :new_version"),
+					ConditionExpression: aws.String("#ver = :expected_version AND balance >= :amount"),
+					ExpressionAttributeNames: map[string]string{
+						"#ver": "version",
+					},
+					ExpressionAttributeValues: map[string]types.AttributeValue{
+						":new_balance":      &types.AttributeValueMemberN{Value: formatFloat(sender.Balance - amount)},
+						":new_version":      &types.AttributeValueMemberN{Value: formatInt(sender.Version + 1)},
+						":expected_version": &types.AttributeValueMemberN{Value: formatInt(sender.Version)},
+						":amount":           &types.AttributeValueMemberN{Value: formatFloat(amount)},
+					},
+				},
+			},
+			{
+				Update: &types.Update{
+					TableName: aws.String(c.accountsTable),
+					Key: map[string]types.AttributeValue{
+						"account_id": &types.AttributeValueMemberS{Value: receiver.AccountID},
+					},
+					UpdateExpression:    aws.String("SET balance = :new_balance, #ver = :new_version"),
+					ConditionExpression: aws.String("#ver = :expected_version"),
+					ExpressionAttributeNames: map[string]string{
+						"#ver": "version",
+					},
+					ExpressionAttributeValues: map[string]types.AttributeValue{
+						":new_balance":      &types.AttributeValueMemberN{Value: formatFloat(receiver.Balance + amount)},
+						":new_version":      &types.AttributeValueMemberN{Value: formatInt(receiver.Version + 1)},
+						":expected_version": &types.AttributeValueMemberN{Value: formatInt(receiver.Version)},
+					},
+				},
+			},
+			{
+				Update: &types.Update{
+					TableName: aws.String(c.txTable),
+					Key: map[string]types.AttributeValue{
+						"transaction_id": &types.AttributeValueMemberS{Value: txID},
+					},
+					UpdateExpression:    aws.String("SET #s = :completed"),
+					ConditionExpression: aws.String("#s = :pending"),
+					ExpressionAttributeNames: map[string]string{
+						"#s": "status",
+					},
+					ExpressionAttributeValues: map[string]types.AttributeValue{
+						":pending":   &types.AttributeValueMemberS{Value: "PENDING"},
+						":completed": &types.AttributeValueMemberS{Value: "COMPLETED"},
+					},
+				},
+			},
+		},
+	})
+	return err
+}
+
 func buildConfig(ctx context.Context) (aws.Config, error) {
 	optFns := []func(*config.LoadOptions) error{
 		config.WithRegion(getEnvOrDefault("AWS_REGION", "us-east-1")),
-		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
-			getEnvOrDefault("AWS_ACCESS_KEY_ID", "test"),
-			getEnvOrDefault("AWS_SECRET_ACCESS_KEY", "test"),
+	}
+	if accessKey, secretKey := os.Getenv("AWS_ACCESS_KEY_ID"), os.Getenv("AWS_SECRET_ACCESS_KEY"); accessKey != "" && secretKey != "" {
+		optFns = append(optFns, config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
+			accessKey,
+			secretKey,
 			"",
-		)),
+		)))
 	}
 	if endpoint := os.Getenv("DYNAMODB_ENDPOINT_URL"); endpoint != "" {
 		customResolver := aws.EndpointResolverWithOptionsFunc(

@@ -60,8 +60,26 @@ func (h *Handler) PostTransfer(c *gin.Context) {
 		Status:        "PENDING",
 		CreatedAt:     time.Now().UTC().Format(time.RFC3339),
 	}
-	if err := h.db.PutTransactionIfNotExists(ctx, tx); err != nil {
+	created, err := h.db.PutTransactionIfNotExists(ctx, tx)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to record transaction"})
+		return
+	}
+	if !created {
+		existing, getErr := h.db.GetTransaction(ctx, req.TransactionID)
+		if getErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to check existing transaction"})
+			return
+		}
+		if existing == nil {
+			c.JSON(http.StatusConflict, gin.H{"error": "transaction already exists"})
+			return
+		}
+		c.JSON(http.StatusOK, models.TransferResponse{
+			TransactionID: existing.TransactionID,
+			Status:        existing.Status,
+			Message:       "transaction already exists",
+		})
 		return
 	}
 
