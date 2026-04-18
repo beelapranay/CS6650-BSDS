@@ -32,6 +32,10 @@ func (h *Handler) PostTransfer(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "transaction_id, from_account, to_account, and amount > 0 are required"})
 		return
 	}
+	if req.FromAccount == req.ToAccount {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "from_account and to_account must be different"})
+		return
+	}
 
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
@@ -60,8 +64,26 @@ func (h *Handler) PostTransfer(c *gin.Context) {
 		Status:        "PENDING",
 		CreatedAt:     time.Now().UTC().Format(time.RFC3339),
 	}
-	if err := h.db.PutTransactionIfNotExists(ctx, tx); err != nil {
+	created, err := h.db.PutTransactionIfNotExists(ctx, tx)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to record transaction"})
+		return
+	}
+	if !created {
+		existing, getErr := h.db.GetTransaction(ctx, req.TransactionID)
+		if getErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to check existing transaction"})
+			return
+		}
+		if existing == nil {
+			c.JSON(http.StatusConflict, gin.H{"error": "transaction already exists"})
+			return
+		}
+		c.JSON(http.StatusOK, models.TransferResponse{
+			TransactionID: existing.TransactionID,
+			Status:        existing.Status,
+			Message:       "transaction already exists",
+		})
 		return
 	}
 

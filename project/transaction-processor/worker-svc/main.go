@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"os"
 
 	"transaction-processor/api-svc/models"
 	"transaction-processor/worker-svc/db"
@@ -26,7 +27,7 @@ func main() {
 
 	proc := processor.NewProcessor(dynamo)
 
-	log.Println("worker started, polling SQS...")
+	log.Printf("worker started, polling SQS with LOCKING_MODE=%s", getEnvOrDefault("LOCKING_MODE", "optimistic"))
 	for {
 		msgs, err := sqsClient.Receive(ctx)
 		if err != nil {
@@ -60,4 +61,11 @@ func main() {
 			}
 		}
 	}
+}
+
+func getEnvOrDefault(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
 }

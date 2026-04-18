@@ -1,0 +1,15 @@
+.git
+.gitignore
+.terraform
+infra/.terraform
+infra/*.tfstate
+infra/*.tfstate.*
+infra/terraform.tfvars
+load-tests/results*.csv
+load-tests/report*.html
+load-tests/accounts.json
+final-report.pdf
+project.zip
+project/
+elevator-pitch.mov
+elevator-pitch.pptx

@@ -31,5 +31,12 @@ venv/
 load-tests/accounts.json
 load-tests/results*.csv
 load-tests/report*.html
+load-tests/experiments/
+
+# Terraform artifacts
+infra/.terraform/
+infra/*.tfstate
+infra/*.tfstate.*
+infra/terraform.tfvars
 
 md-files/

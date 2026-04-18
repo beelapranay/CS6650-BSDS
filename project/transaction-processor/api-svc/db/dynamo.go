@@ -15,8 +15,8 @@ import (
 )
 
 type DynamoClient struct {
-	client           *dynamodb.Client
-	txTable          string
+	client  *dynamodb.Client
+	txTable string
 }
 
 func NewDynamoClient(ctx context.Context) (*DynamoClient, error) {
@@ -33,11 +33,13 @@ func NewDynamoClient(ctx context.Context) (*DynamoClient, error) {
 func buildConfig(ctx context.Context) (aws.Config, error) {
 	optFns := []func(*config.LoadOptions) error{
 		config.WithRegion(getEnvOrDefault("AWS_REGION", "us-east-1")),
-		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
-			getEnvOrDefault("AWS_ACCESS_KEY_ID", "test"),
-			getEnvOrDefault("AWS_SECRET_ACCESS_KEY", "test"),
+	}
+	if accessKey, secretKey := os.Getenv("AWS_ACCESS_KEY_ID"), os.Getenv("AWS_SECRET_ACCESS_KEY"); accessKey != "" && secretKey != "" {
+		optFns = append(optFns, config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
+			accessKey,
+			secretKey,
 			"",
-		)),
+		)))
 	}
 	if endpoint := os.Getenv("DYNAMODB_ENDPOINT_URL"); endpoint != "" {
 		customResolver := aws.EndpointResolverWithOptionsFunc(
@@ -70,10 +72,10 @@ func (c *DynamoClient) GetTransaction(ctx context.Context, id string) (*models.T
 	return &tx, nil
 }
 
-func (c *DynamoClient) PutTransactionIfNotExists(ctx context.Context, tx models.Transaction) error {
+func (c *DynamoClient) PutTransactionIfNotExists(ctx context.Context, tx models.Transaction) (bool, error) {
 	av, err := attributevalue.MarshalMap(tx)
 	if err != nil {
-		return err
+		return false, err
 	}
 	_, err = c.client.PutItem(ctx, &dynamodb.PutItemInput{
 		TableName:           aws.String(c.txTable),
@@ -83,12 +85,11 @@ func (c *DynamoClient) PutTransactionIfNotExists(ctx context.Context, tx models.
 	if err != nil {
 		var condErr *types.ConditionalCheckFailedException
 		if errors.As(err, &condErr) {
-			// Already exists — idempotent, not an error
-			return nil
+			return false, nil
 		}
-		return err
+		return false, err
 	}
-	return nil
+	return true, nil
 }
 
 func getEnvOrDefault(key, def string) string {

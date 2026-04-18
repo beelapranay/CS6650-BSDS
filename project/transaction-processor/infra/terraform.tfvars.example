@@ -1,0 +1,24 @@
+aws_region     = "us-east-1"
+aws_account_id = "123456789012"
+
+# Leave this as LabRole for the course environment.
+lab_role_name            = "LabRole"
+provider_assume_lab_role = true
+
+project_name = "transaction-processor"
+environment  = "dev"
+
+# Recommended: provide at least two subnets for ALB and ECS.
+# subnet_ids = ["subnet-aaaaaaa", "subnet-bbbbbbb"]
+
+app_image_tag    = "latest"
+worker_image_tag = "latest"
+
+api_desired_count    = 1
+worker_desired_count = 1
+
+locking_mode     = "optimistic"
+lock_ttl_seconds = 90
+
+# Set this above zero only when deliberately running the worker-crash experiment.
+pre_commit_delay_ms = 0

@@ -63,11 +63,13 @@ func (s *SQSClient) Delete(ctx context.Context, receiptHandle string) error {
 func buildConfig(ctx context.Context) (aws.Config, error) {
 	optFns := []func(*config.LoadOptions) error{
 		config.WithRegion(getEnvOrDefault("AWS_REGION", "us-east-1")),
-		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
-			getEnvOrDefault("AWS_ACCESS_KEY_ID", "test"),
-			getEnvOrDefault("AWS_SECRET_ACCESS_KEY", "test"),
+	}
+	if accessKey, secretKey := os.Getenv("AWS_ACCESS_KEY_ID"), os.Getenv("AWS_SECRET_ACCESS_KEY"); accessKey != "" && secretKey != "" {
+		optFns = append(optFns, config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
+			accessKey,
+			secretKey,
 			"",
-		)),
+		)))
 	}
 	if endpoint := os.Getenv("SQS_ENDPOINT_URL"); endpoint != "" {
 		customResolver := aws.EndpointResolverWithOptionsFunc(
