@@ -4,10 +4,13 @@ SQS_QUEUE_URL=http://localhost:9324/000000000000/transfers
 
 AWS_ENV=AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION=us-east-1
 
+LOCUST?=$(shell if [ -x /tmp/locust-venv/bin/locust ]; then printf /tmp/locust-venv/bin/locust; elif command -v locust >/dev/null 2>&1; then command -v locust; else printf locust; fi)
+VERIFY_PYTHON?=$(shell if [ -x /tmp/locust-venv/bin/python3 ]; then printf /tmp/locust-venv/bin/python3; else command -v python3; fi)
+
 DYNAMO_FLAGS=--endpoint-url=$(DYNAMODB_ENDPOINT) --region us-east-1
 SQS_FLAGS=--endpoint-url=$(SQS_ENDPOINT) --region us-east-1
 
-.PHONY: init up down deps seed test-load verify smoke
+.PHONY: init up down deps seed test-load test-load-hot verify smoke push-images tf-init tf-apply cloud-seed cloud-smoke
 
 ## Bring up all services
 up:
@@ -71,8 +74,6 @@ smoke:
 	sleep 2; \
 	curl -s http://localhost:8080/transfer/$$TXN_ID | jq .
 
-LOCUST=/tmp/locust-venv/bin/locust
-
 ## Run Locust load test — TransferUser (normal mixed load)
 test-load:
 	cd load-tests && $(LOCUST) -f locustfile.py --host=http://localhost:8080 \
@@ -92,4 +93,21 @@ verify:
 	AWS_ACCESS_KEY_ID=test \
 	AWS_SECRET_ACCESS_KEY=test \
 	DYNAMODB_ACCOUNTS_TABLE=accounts \
-	/tmp/locust-venv/bin/python3 load-tests/verify_balances.py
+	$(VERIFY_PYTHON) load-tests/verify_balances.py
+
+push-images:
+	./scripts/push_images.sh
+
+tf-init:
+	terraform -chdir=infra init
+
+tf-apply:
+	terraform -chdir=infra apply
+
+cloud-seed:
+	AWS_REGION=$$(terraform -chdir=infra output -raw aws_region) \
+	DYNAMODB_ACCOUNTS_TABLE=$$(terraform -chdir=infra output -raw accounts_table_name) \
+	go run ./scripts/seed_accounts.go
+
+cloud-smoke:
+	./scripts/smoke_test.sh "$$(terraform -chdir=infra output -raw base_url)"

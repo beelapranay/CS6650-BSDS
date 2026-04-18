@@ -46,6 +46,7 @@ services:
       - SQS_QUEUE_URL=http://elasticmq:9324/000000000000/transfers
       - DYNAMODB_ACCOUNTS_TABLE=accounts
       - DYNAMODB_TRANSACTIONS_TABLE=transactions
+      - PRE_COMMIT_DELAY_MS=${PRE_COMMIT_DELAY_MS:-0}
     depends_on:
       - dynamodb-local
       - elasticmq
