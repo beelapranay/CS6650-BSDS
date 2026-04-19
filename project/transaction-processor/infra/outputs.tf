@@ -8,6 +8,16 @@ output "lab_role_arn" {
   value       = local.lab_role_arn
 }
 
+output "caller_arn" {
+  description = "ARN Terraform saw when planning/applying. Should reference LabRole."
+  value       = data.aws_caller_identity.current.arn
+}
+
+output "caller_account" {
+  description = "AWS account ID Terraform is operating against."
+  value       = data.aws_caller_identity.current.account_id
+}
+
 output "api_ecr_repository_url" {
   description = "ECR repository URL for the API image."
   value       = aws_ecr_repository.api.repository_url
@@ -66,4 +76,14 @@ output "alb_dns_name" {
 output "base_url" {
   description = "Base URL for the deployed API."
   value       = "http://${aws_lb.api.dns_name}"
+}
+
+output "worker_log_group" {
+  description = "CloudWatch log group for the worker service."
+  value       = aws_cloudwatch_log_group.worker.name
+}
+
+output "api_log_group" {
+  description = "CloudWatch log group for the API service."
+  value       = aws_cloudwatch_log_group.api.name
 }

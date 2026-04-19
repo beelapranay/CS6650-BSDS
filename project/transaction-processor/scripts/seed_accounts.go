@@ -5,10 +5,12 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -90,15 +92,36 @@ func main() {
 }
 
 func putAccount(ctx context.Context, client *dynamodb.Client, table, id string, balance float64) error {
-	_, err := client.PutItem(ctx, &dynamodb.PutItemInput{
+	input := &dynamodb.PutItemInput{
 		TableName: aws.String(table),
 		Item: map[string]types.AttributeValue{
 			"account_id": &types.AttributeValueMemberS{Value: id},
 			"balance":    &types.AttributeValueMemberN{Value: strconv.FormatFloat(balance, 'f', -1, 64)},
 			"version":    &types.AttributeValueMemberN{Value: "0"},
 		},
-	})
-	return err
+	}
+
+	const maxAttempts = 8
+	var lastErr error
+	for attempt := 0; attempt < maxAttempts; attempt++ {
+		_, err := client.PutItem(ctx, input)
+		if err == nil {
+			return nil
+		}
+		lastErr = err
+
+		var txConflict *types.TransactionConflictException
+		if errors.As(err, &txConflict) {
+			backoff := time.Duration(1<<attempt) * 100 * time.Millisecond
+			if backoff > 3*time.Second {
+				backoff = 3 * time.Second
+			}
+			time.Sleep(backoff)
+			continue
+		}
+		return err
+	}
+	return lastErr
 }
 
 func getEnvOrDefault(key, def string) string {

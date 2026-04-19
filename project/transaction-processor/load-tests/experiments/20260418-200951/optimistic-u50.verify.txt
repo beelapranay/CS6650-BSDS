@@ -1,0 +1,7 @@
+Scanning table 'transaction-processor-dev-accounts'...
+Accounts scanned : 101
+Expected total   : 1010000.00
+Actual total     : 1010000
+Difference       : 0.00
+
+All balances correct.

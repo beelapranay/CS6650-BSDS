@@ -1,7 +1,7 @@
 variable "aws_region" {
   description = "AWS region for all resources."
   type        = string
-  default     = "us-east-1"
+  default     = "us-west-2"
 }
 
 variable "aws_account_id" {
@@ -16,9 +16,9 @@ variable "lab_role_name" {
 }
 
 variable "provider_assume_lab_role" {
-  description = "Whether Terraform should assume LabRole before creating resources."
+  description = "Whether Terraform should assume LabRole before creating resources. Leave false if the caller is already authenticated as LabRole (standard AWS Academy setup)."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "project_name" {
@@ -109,4 +109,10 @@ variable "lock_ttl_seconds" {
   description = "Lease duration for pessimistic account locks."
   type        = number
   default     = 90
+}
+
+variable "metrics_log_interval_seconds" {
+  description = "Interval for worker metrics snapshot log lines. 0 disables."
+  type        = number
+  default     = 30
 }

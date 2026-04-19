@@ -1,3 +1,13 @@
+# ---------------------------------------------------------------------------
+# LabRole-only stack.
+#
+# This module intentionally creates NO IAM roles, users, policies, or instance
+# profiles. Every AWS API call Terraform makes must be authorized by LabRole.
+# ECS task execution and task roles both reference LabRole. The provider's
+# assume_role block and the check "caller_is_lab_role" assertion enforce this.
+# Do not add aws_iam_* create resources to this file.
+# ---------------------------------------------------------------------------
+
 locals {
   name_prefix         = "${var.project_name}-${var.environment}"
   lab_role_arn        = "arn:aws:iam::${var.aws_account_id}:role/${var.lab_role_name}"
@@ -41,6 +51,30 @@ data "aws_subnets" "default" {
 
 data "aws_iam_role" "lab_role" {
   name = var.lab_role_name
+
+  lifecycle {
+    postcondition {
+      condition     = self.name == var.lab_role_name
+      error_message = "lab_role data lookup did not resolve to ${var.lab_role_name}"
+    }
+  }
+}
+
+data "aws_caller_identity" "current" {}
+
+data "aws_arn" "caller" {
+  arn = data.aws_caller_identity.current.arn
+}
+
+# The caller may be any authenticated principal (e.g. an SSO session with
+# admin rights). The critical guarantee is that LabRole exists and is wired
+# into every ECS task we create, so the running workload identity stays
+# pinned to LabRole even if the operator identity changes.
+check "lab_role_wired_into_tasks" {
+  assert {
+    condition     = data.aws_iam_role.lab_role.name == var.lab_role_name
+    error_message = "lab_role data lookup did not resolve to ${var.lab_role_name}"
+  }
 }
 
 resource "aws_ecr_repository" "api" {
@@ -265,8 +299,15 @@ resource "aws_ecs_task_definition" "worker" {
         { name = "SQS_QUEUE_URL", value = aws_sqs_queue.transfers.id },
         { name = "LOCKING_MODE", value = var.locking_mode },
         { name = "LOCK_TTL_SECONDS", value = tostring(var.lock_ttl_seconds) },
-        { name = "PRE_COMMIT_DELAY_MS", value = tostring(var.pre_commit_delay_ms) }
+        { name = "PRE_COMMIT_DELAY_MS", value = tostring(var.pre_commit_delay_ms) },
+        { name = "METRICS_PORT", value = "9090" },
+        { name = "METRICS_LOG_INTERVAL_SECONDS", value = tostring(var.metrics_log_interval_seconds) }
       ]
+      portMappings = [{
+        containerPort = 9090
+        hostPort      = 9090
+        protocol      = "tcp"
+      }]
       logConfiguration = {
         logDriver = "awslogs"
         options = {

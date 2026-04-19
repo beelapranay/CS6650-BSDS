@@ -1,30 +1,32 @@
 ```mermaid
 flowchart TD
-    U[User / Locust Load Test] --> API[api-svc on localhost:8080]
+    U[Client / Locust] --> ALB[ALB]
+    ALB --> API[ECS Fargate — api-svc]
     API --> CHECK[Validate request and check idempotency]
-    CHECK --> TX1[Write PENDING transaction to DynamoDB Local]
-    TX1 --> Q[Send message to ElasticMQ queue]
+    CHECK --> TX1[Write PENDING transaction to DynamoDB transactions]
+    TX1 --> Q[Send message to SQS transfers queue]
 
-    Q --> W[worker-svc polls queue]
-    W --> ACC1[Read sender account from DynamoDB Local]
+    Q --> W[ECS Fargate — worker-svc]
+    W --> ACC1[Read sender account from DynamoDB accounts]
     ACC1 --> FUNDS{Sufficient funds?}
 
     FUNDS -->|No| FAIL[Mark transaction FAILED]
-    FUNDS -->|Yes| DEBIT[Debit sender with optimistic locking]
-    DEBIT --> ACC2[Read receiver account]
-    ACC2 --> CREDIT[Credit receiver with optimistic locking]
-    CREDIT --> DONE[Mark transaction COMPLETED]
+    FUNDS -->|Yes| COMMIT[TransactWriteItems: debit sender, credit receiver, mark COMPLETED]
 
-    FAIL --> TX2[Update transaction record in DynamoDB Local]
-    DONE --> TX2
+    FAIL --> TX2[Update transaction record]
+    COMMIT --> TX2
 
     API --> STATUS[GET transfer status]
     STATUS --> TX2
 
-    V[verify_balances.py] --> DB[(DynamoDB Local)]
-    TX1 --> DB
-    TX2 --> DB
-    ACC1 --> DB
-    ACC2 --> DB
+    subgraph Concurrency modes
+      OPT[Optimistic — version check on accounts]
+      PESS[Pessimistic — account_locks table with TTL leases]
+    end
 
+    COMMIT --> OPT
+    COMMIT --> PESS
+
+    W -.periodic METRICS snapshot.-> CW[CloudWatch Logs]
+    V[verify_balances.py] --> DB[(DynamoDB accounts)]
 ```
