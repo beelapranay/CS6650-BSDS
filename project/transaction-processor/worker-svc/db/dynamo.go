@@ -85,45 +85,6 @@ func (c *DynamoClient) GetTransaction(ctx context.Context, id string) (*models.T
 	return &tx, nil
 }
 
-// UpdateBalanceOptimistic does a conditional update: only succeeds if version matches.
-// Returns a ConditionalCheckFailedException (wrapped) if version has changed.
-func (c *DynamoClient) UpdateBalanceOptimistic(ctx context.Context, id string, newBalance float64, expectedVersion int) error {
-	_, err := c.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
-		TableName: aws.String(c.accountsTable),
-		Key: map[string]types.AttributeValue{
-			"account_id": &types.AttributeValueMemberS{Value: id},
-		},
-		UpdateExpression:    aws.String("SET balance = :new_balance, #ver = :new_version"),
-		ConditionExpression: aws.String("#ver = :expected_version"),
-		ExpressionAttributeNames: map[string]string{
-			"#ver": "version",
-		},
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":new_balance":      &types.AttributeValueMemberN{Value: formatFloat(newBalance)},
-			":new_version":      &types.AttributeValueMemberN{Value: formatInt(expectedVersion + 1)},
-			":expected_version": &types.AttributeValueMemberN{Value: formatInt(expectedVersion)},
-		},
-	})
-	return err
-}
-
-func (c *DynamoClient) UpdateTransactionStatus(ctx context.Context, id string, status string) error {
-	_, err := c.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
-		TableName: aws.String(c.txTable),
-		Key: map[string]types.AttributeValue{
-			"transaction_id": &types.AttributeValueMemberS{Value: id},
-		},
-		UpdateExpression: aws.String("SET #s = :status"),
-		ExpressionAttributeNames: map[string]string{
-			"#s": "status",
-		},
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":status": &types.AttributeValueMemberS{Value: status},
-		},
-	})
-	return err
-}
-
 func (c *DynamoClient) AcquireAccountLock(ctx context.Context, accountID, ownerTxID string, now time.Time, ttl time.Duration) error {
 	expiresAt := now.Add(ttl).Unix()
 	_, err := c.client.PutItem(ctx, &dynamodb.PutItemInput{

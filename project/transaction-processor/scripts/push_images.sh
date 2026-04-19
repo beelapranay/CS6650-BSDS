@@ -11,14 +11,19 @@ WORKER_REPO="${WORKER_REPO:-$(terraform -chdir="${INFRA_DIR}" output -raw worker
 aws ecr get-login-password --region "${AWS_REGION}" \
   | docker login --username AWS --password-stdin "${API_REPO%/*}"
 
-docker build -t transaction-processor-api:${IMAGE_TAG} -f "${ROOT_DIR}/api-svc/Dockerfile" "${ROOT_DIR}"
-docker build -t transaction-processor-worker:${IMAGE_TAG} -f "${ROOT_DIR}/worker-svc/Dockerfile" "${ROOT_DIR}"
+# Build for linux/amd64 explicitly. Fargate runs amd64 unless the task def
+# sets runtimePlatform to ARM64, so ARM hosts (Apple Silicon) must cross-build.
+docker buildx inspect trx-amd64 >/dev/null 2>&1 || docker buildx create --name trx-amd64 --use >/dev/null
 
-docker tag transaction-processor-api:${IMAGE_TAG} "${API_REPO}:${IMAGE_TAG}"
-docker tag transaction-processor-worker:${IMAGE_TAG} "${WORKER_REPO}:${IMAGE_TAG}"
+docker buildx build --builder trx-amd64 --platform linux/amd64 \
+  -f "${ROOT_DIR}/api-svc/Dockerfile" \
+  -t "${API_REPO}:${IMAGE_TAG}" \
+  --push "${ROOT_DIR}"
 
-docker push "${API_REPO}:${IMAGE_TAG}"
-docker push "${WORKER_REPO}:${IMAGE_TAG}"
+docker buildx build --builder trx-amd64 --platform linux/amd64 \
+  -f "${ROOT_DIR}/worker-svc/Dockerfile" \
+  -t "${WORKER_REPO}:${IMAGE_TAG}" \
+  --push "${ROOT_DIR}"
 
 echo "Pushed API image to ${API_REPO}:${IMAGE_TAG}"
 echo "Pushed worker image to ${WORKER_REPO}:${IMAGE_TAG}"

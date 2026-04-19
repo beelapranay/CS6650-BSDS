@@ -1,13 +1,12 @@
 """
 Locust load test for the transaction processor.
 
-Run:
-  locust -f locustfile.py --host=http://localhost:8080
-
-Or headless (used by Makefile):
-  locust -f locustfile.py --host=http://localhost:8080 \
+Run (headless, against the deployed ALB):
+  locust -f locustfile.py --host=$(terraform -chdir=infra output -raw base_url) \
          --users 50 --spawn-rate 5 --run-time 5m --headless \
          --csv=results --html=report.html
+
+The Makefile wraps this via `make cloud-test-load` and `make cloud-test-load-hot`.
 """
 
 import json

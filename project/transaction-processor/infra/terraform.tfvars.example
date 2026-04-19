@@ -1,9 +1,14 @@
-aws_region     = "us-east-1"
+aws_region     = "us-west-2"
 aws_account_id = "123456789012"
 
-# Leave this as LabRole for the course environment.
-lab_role_name            = "LabRole"
-provider_assume_lab_role = true
+# LabRole is the only principal the course environment permits for
+# create/update/delete. Do NOT change lab_role_name.
+lab_role_name = "LabRole"
+
+# Set to true ONLY if your shell credentials are a user/role with
+# sts:AssumeRole permission on LabRole. On AWS Academy the shell credentials
+# ARE LabRole session credentials already, so leave this false.
+provider_assume_lab_role = false
 
 project_name = "transaction-processor"
 environment  = "dev"

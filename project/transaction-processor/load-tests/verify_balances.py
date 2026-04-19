@@ -5,13 +5,12 @@ Scans all accounts in DynamoDB and confirms:
   1. No account has a negative balance.
   2. The sum of all balances equals the expected total from the seed script.
 
-Usage:
-  AWS_ENDPOINT_URL=http://localhost:4566 \\
-  AWS_REGION=us-east-1 \\
-  AWS_ACCESS_KEY_ID=test \\
-  AWS_SECRET_ACCESS_KEY=test \\
-  DYNAMODB_ACCOUNTS_TABLE=accounts \\
+Usage (cloud):
+  AWS_REGION=$(terraform -chdir=infra output -raw aws_region) \\
+  DYNAMODB_ACCOUNTS_TABLE=$(terraform -chdir=infra output -raw accounts_table_name) \\
   python3 verify_balances.py
+
+The Makefile wraps this via `make cloud-verify`.
 
 Exit codes:
   0 — all balances correct
@@ -46,7 +45,7 @@ def main():
     print(f"Scanning table '{table_name}'...")
 
     items = []
-    scan_kwargs: dict = {}
+    scan_kwargs: dict = {"ConsistentRead": True}
     while True:
         resp = table.scan(**scan_kwargs)
         items.extend(resp["Items"])

@@ -1,0 +1,1 @@
+{"transfer_attempts_total{mode=\"optimistic\"}": 18213, "transfer_failures_total{reason=\"insufficient_funds\"}": 900, "transfer_success_total{mode=\"optimistic\"}": 18213}

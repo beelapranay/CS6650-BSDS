@@ -1,0 +1,1 @@
+{"slug":"scale-a1-w1-optimistic","mode":"optimistic","users":100,"scenario":"TransferUser","api_replicas":1,"worker_replicas":1,"run_time":"3m"}

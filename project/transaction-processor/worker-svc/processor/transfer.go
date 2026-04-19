@@ -8,11 +8,13 @@ import (
 	"os"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"transaction-processor/api-svc/models"
 	"transaction-processor/worker-svc/db"
+	"transaction-processor/worker-svc/metrics"
 )
 
 const maxRetries = 3
@@ -56,13 +58,17 @@ func (p *Processor) Process(ctx context.Context, req models.TransferRequest) err
 }
 
 func (p *Processor) transfer(ctx context.Context, req models.TransferRequest) error {
+	modeLabels := map[string]string{"mode": p.lockingMode}
 	for attempt := 0; attempt < maxRetries; attempt++ {
+		metrics.Default.Inc(metrics.TransferAttempts, modeLabels)
 		err := p.attemptTransfer(ctx, req)
 		if err == nil {
+			metrics.Default.Inc(metrics.TransferSuccess, modeLabels)
 			return nil
 		}
 
 		if isRetryableConcurrencyError(err) {
+			metrics.Default.Inc(metrics.TransferConflicts, modeLabels)
 			backoff := time.Duration(1<<attempt) * 100 * time.Millisecond
 			log.Printf("[processor] retryable concurrency conflict on attempt %d for tx %s in %s mode, retrying in %v",
 				attempt+1, req.TransactionID, p.lockingMode, backoff)
@@ -75,6 +81,7 @@ func (p *Processor) transfer(ctx context.Context, req models.TransferRequest) er
 	}
 
 	log.Printf("[processor] max retries exhausted for tx %s, marking FAILED", req.TransactionID)
+	metrics.Default.Inc(metrics.TransferRetriesExhausted, modeLabels)
 	return p.failTransfer(ctx, req.TransactionID, "retry budget exhausted")
 }
 
@@ -156,6 +163,7 @@ func (p *Processor) attemptTransferPessimistic(ctx context.Context, req models.T
 
 	for _, accountID := range lockIDs {
 		if err := p.db.AcquireAccountLock(ctx, accountID, req.TransactionID, time.Now().UTC(), p.lockTTL); err != nil {
+			metrics.Default.Inc(metrics.TransferLockAcquireFailed, map[string]string{"mode": p.lockingMode})
 			return fmt.Errorf("acquire lock for %s: %w", accountID, err)
 		}
 		acquired = append(acquired, accountID)
@@ -218,10 +226,26 @@ func (p *Processor) failTransfer(ctx context.Context, txID string, reason string
 	}
 	if updated {
 		log.Printf("[processor] tx %s marked FAILED: %s", txID, reason)
+		metrics.Default.Inc(metrics.TransferFailures, map[string]string{"reason": classifyReason(reason)})
 	} else {
 		log.Printf("[processor] tx %s already left PENDING while handling failure: %s", txID, reason)
 	}
 	return nil
+}
+
+func classifyReason(reason string) string {
+	switch {
+	case reason == "retry budget exhausted":
+		return "retry_exhausted"
+	case strings.HasPrefix(reason, "insufficient funds"):
+		return "insufficient_funds"
+	case strings.HasPrefix(reason, "sender account"):
+		return "missing_sender"
+	case strings.HasPrefix(reason, "receiver account"):
+		return "missing_receiver"
+	default:
+		return "other"
+	}
 }
 
 func sleepWithContext(ctx context.Context, d time.Duration) error {
