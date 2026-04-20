@@ -6,27 +6,78 @@
 \usepackage{array}
 \usepackage{xcolor}
 \usepackage{colortbl}
+\usepackage[most]{tcolorbox}
 \usepackage{hyperref}
 \usepackage{enumitem}
 \usepackage{longtable}
+\usepackage{fancyhdr}
+\usepackage{sectsty}
 
 \hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue}
 
-\definecolor{banditblue}{HTML}{dce7f5}
+% ---- palette ----
+\definecolor{accentblue}{HTML}{1f3fa8}
+\definecolor{accentgold}{HTML}{e8a837}
+\definecolor{boxblue}{HTML}{dce7f5}
+\definecolor{boxgreen}{HTML}{d8ecd1}
+\definecolor{boxyellow}{HTML}{f6e7bf}
+\definecolor{boxgray}{HTML}{eef1f6}
+\definecolor{boxrule}{HTML}{b4c4dc}
 \definecolor{rowalt}{HTML}{f3f3f3}
+
+% ---- callout boxes ----
+\newtcolorbox{infobox}{
+  enhanced, colback=boxgray, colframe=boxrule, boxrule=0.4pt,
+  left=10pt, right=10pt, top=8pt, bottom=8pt, arc=2pt,
+  before skip=8pt, after skip=8pt
+}
+\newtcolorbox{highlightbox}{
+  enhanced, colback=boxblue, colframe=boxblue!70!accentblue, boxrule=0.4pt,
+  left=10pt, right=10pt, top=7pt, bottom=7pt, arc=2pt,
+  before skip=6pt, after skip=6pt
+}
+\newtcolorbox{winbox}{
+  enhanced, colback=boxgreen, colframe=boxgreen!65!black!30, boxrule=0.4pt,
+  left=10pt, right=10pt, top=7pt, bottom=7pt, arc=2pt,
+  before skip=6pt, after skip=6pt
+}
+\newtcolorbox{warnbox}{
+  enhanced, colback=boxyellow, colframe=boxyellow!70!accentgold, boxrule=0.4pt,
+  left=10pt, right=10pt, top=7pt, bottom=7pt, arc=2pt,
+  before skip=6pt, after skip=6pt
+}
+
+% ---- headers ----
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Distributed Financial Transaction Processor}
+\fancyhead[R]{\small CS 6650 Final Report --- Northeastern University}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{accentblue}\leaders\hrule height \headrulewidth\hfill}}
 
 \setlength{\parskip}{0.45em}
 \setlength{\parindent}{0pt}
 
-\title{\vspace{-1.5em}\textbf{Project Management Report} \\ \large Distributed Financial Transaction Processor\vspace{-0.3em}}
-\author{Sampath Pranay Beela, Rahul Chinya Jagadeesha \\ \small CS6650 --- Building Scalable Distributed Systems}
+\sectionfont{\color{accentblue}\Large\bfseries}
+\subsectionfont{\color{accentblue!80!black}\large\bfseries}
+
+\title{\vspace{-1.5em}\textbf{\color{accentblue}Distributed Financial Transaction Processor} \\ \large Project Management Report\vspace{-0.3em}}
+\author{Sampath Pranay Beela, Rahul Chinya Jagadeesha \\ \small CS 6650 --- Building Scalable Distributed Systems, Northeastern University}
 \date{\vspace{-0.5em}\small Spring 2026}
 
 \begin{document}
 \maketitle
+\thispagestyle{fancy}
 \vspace{-1.8em}
 
-\section*{1. Initial design vs.\ final state}
+\begin{infobox}
+\textbf{Summary.} This report documents the path from initial concept to deployed system for the CS~6650 final project: a distributed financial transaction processor built on AWS. It covers the delta between our Week~1 design sketch and the final state, the phase breakdown we actually followed, who owned what, the obstacles we hit along the way, and the process changes we would make next time.
+\end{infobox}
+
+%==============================================================
+\section{Initial design vs.\ final state}
+%==============================================================
 
 We began with a one-page sketch of the system: an HTTP API in front, a worker pool in the back, and a queue in between. The sketch answered ``what shape is this going to be'' but nothing else. The final system is a fully cloud-deployed, Terraform-provisioned, Locust-benchmarked, four-experiment-validated pipeline running on real AWS infrastructure. Table~\ref{tab:delta} captures the journey from intent to outcome.
 
@@ -35,9 +86,11 @@ We began with a one-page sketch of the system: an HTTP API in front, a worker po
 \small
 \renewcommand{\arraystretch}{1.22}
 \rowcolors{2}{white}{rowalt}
-\begin{tabular}{>{\raggedright\arraybackslash}p{4.3cm} >{\raggedright\arraybackslash}p{4.9cm} >{\raggedright\arraybackslash}p{4.9cm}}
+\caption{Where the project started vs.\ where it ended}
+\label{tab:delta}
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.8cm} >{\raggedright\arraybackslash}p{5.2cm} >{\raggedright\arraybackslash}p{5.2cm}}
 \toprule
-\rowcolor{banditblue}
+\rowcolor{boxblue}
 \textbf{Aspect} & \textbf{Initial intent (Week 1)} & \textbf{Final state (Week 8)} \\
 \midrule
 Architecture & API + worker + queue + DB & ALB $\rightarrow$ ECS Fargate api-svc $\rightarrow$ SQS (+ DLQ) $\rightarrow$ ECS Fargate worker-svc $\rightarrow$ DynamoDB (3 tables) + CloudWatch \\
@@ -49,50 +102,56 @@ Load testing & ``some Locust script'' & two user classes, four experiment runner
 Reproducibility & manual steps & every task a preflight-gated \texttt{make} target; every experiment a shell script that reseeds, runs, drains, verifies \\
 \bottomrule
 \end{tabular}
-\caption{Where the project started vs.\ where it ended.}
-\label{tab:delta}
 \end{table}
 
-Three things changed the most between ``initial intent'' and ``final state.'' First, we committed early to a \textbf{cloud-only} workflow rather than a local-compose-then-cloud workflow --- this made the middle of the project harder but produced experimental numbers we could actually defend. Second, we decided to wrap the debit, credit, and status update in a single \texttt{TransactWriteItems} rather than three separate writes, which turned out to be the single design decision that the crash-recovery experiment proved correct. Third, we added a second concurrency-control strategy (pessimistic locking) specifically so Experiment~3 could answer a real question, not just measure our one implementation.
+\begin{highlightbox}
+\textbf{Three decisions changed the project the most.} First, we committed early to a \textbf{cloud-only} workflow rather than a local-compose-then-cloud workflow --- this made the middle of the project harder but produced experimental numbers we could actually defend. Second, we wrapped debit, credit, and status update in a single \texttt{TransactWriteItems} rather than three separate writes, which turned out to be the design decision the crash-recovery experiment proved correct. Third, we added a second concurrency-control strategy (pessimistic locking) specifically so Experiment~3 could answer a real question, not just measure our one implementation.
+\end{highlightbox}
 
-\section*{2. How we broke the problem down}
+%==============================================================
+\section{How we broke the problem down}
+%==============================================================
 
-We used the eight-week timeline in the project implementation plan as a living roadmap. Each of the four two-week phases owned a distinct set of deliverables with explicit dependencies so work could flow between phases without stalling. Table~\ref{tab:phases} is the phase breakdown we actually followed.
+We used the eight-week timeline in the project implementation plan as a living roadmap. Each of the four two-week phases owned a distinct set of deliverables with explicit dependencies so work could flow between phases without stalling.
 
 \begin{table}[h]
 \centering
 \small
 \renewcommand{\arraystretch}{1.25}
 \rowcolors{2}{white}{rowalt}
-\begin{tabular}{>{\raggedright\arraybackslash}p{2.2cm} >{\raggedright\arraybackslash}p{7.1cm} >{\raggedright\arraybackslash}p{5.0cm}}
+\caption{Four phases, each with a clear ``we move on when this is true'' gate}
+\label{tab:phases}
+\begin{tabular}{>{\raggedright\arraybackslash}p{2.2cm} >{\raggedright\arraybackslash}p{7.3cm} >{\raggedright\arraybackslash}p{4.8cm}}
 \toprule
-\rowcolor{banditblue}
+\rowcolor{boxblue}
 \textbf{Phase} & \textbf{Deliverables} & \textbf{Success criteria} \\
 \midrule
 Weeks 1--2 \newline \textit{Foundations} & Architecture finalization; repo + service scaffolding; DynamoDB schema; core transfer workflow; API-side idempotency; SQS producer and consumer & One transfer can be submitted via HTTP and is applied exactly once to DynamoDB \\
 Weeks 3--4 \newline \textit{Cloud + first load} & Dockerfiles + ECR; Terraform (ECR, ECS, ALB, SQS, Dynamo, CloudWatch); cloud smoke test; Locust harness (two workload classes); \textbf{Exp~1} (hot-account storm); \textbf{Exp~2} (worker crash recovery) & System runs on AWS end-to-end; two experiments produce reproducible numbers \\
 Weeks 5--6 \newline \textit{Comparison + scale} & Pessimistic locking implementation; mode-swap harness; \textbf{Exp~3} (opt vs.\ pess on cloud); \textbf{Exp~4} (horizontal scaling 1:1, 2:2, 4:4) & Both modes characterized; scaling curve produced; correctness held at every config \\
-Weeks 7--8 \newline \textit{Analysis + delivery} & Chart generator; summary-markdown generator; final report (LaTeX, 24 pages with embedded AWS screenshots); experiments report (5 pages); lessons-learned reflections; demo prep & Publication-ready artifacts produced; demo runnable end-to-end from a clean shell \\
+Weeks 7--8 \newline \textit{Analysis + delivery} & Chart generator; summary-markdown generator; final report (LaTeX, with embedded AWS console screenshots); experiments report (5 pages); lessons-learned reflections; demo prep & Publication-ready artifacts produced; demo runnable end-to-end from a clean shell \\
 \bottomrule
 \end{tabular}
-\caption{Four phases, each with a clear ``we move on when this is true'' gate.}
-\label{tab:phases}
 \end{table}
 
-Within each phase, we worked in short commit-sized units: each commit landed one self-contained piece (a handler, a script, a Terraform resource, an experiment runner) behind a feature flag or behind a preflight check, so neither of us ever blocked the other's work. This mattered the most during Weeks~3--4, when one of us was writing Terraform while the other was writing the crash-recovery experiment against the output of that Terraform.
+Within each phase, we worked in short commit-sized units: each commit landed one self-contained piece (a handler, a script, a Terraform resource, an experiment runner) behind a feature flag or behind a preflight check, so neither of us ever blocked the other's work. This mattered most during Weeks~3--4, when one of us was writing Terraform while the other was writing the crash-recovery experiment against the output of that Terraform.
 
-\section*{3. Who worked on what}
+%==============================================================
+\section{Who worked on what}
+%==============================================================
 
-The team is two people. The work split came directly from the project implementation plan and held without revision through all eight weeks. Table~\ref{tab:ownership} is the per-item RACI view.
+The team is two people. The work split came directly from the project implementation plan and held without revision through all eight weeks.
 
 \begin{table}[h]
 \centering
 \small
 \renewcommand{\arraystretch}{1.22}
 \rowcolors{2}{white}{rowalt}
-\begin{tabular}{>{\raggedright\arraybackslash}p{5.6cm} >{\raggedright\arraybackslash}p{4.0cm} >{\raggedright\arraybackslash}p{4.9cm}}
+\caption{Per-item ownership. ``Pranay \& Rahul'' items were paired work where both of us contributed meaningfully.}
+\label{tab:ownership}
+\begin{tabular}{>{\raggedright\arraybackslash}p{5.6cm} >{\raggedright\arraybackslash}p{3.6cm} >{\raggedright\arraybackslash}p{5.2cm}}
 \toprule
-\rowcolor{banditblue}
+\rowcolor{boxblue}
 \textbf{Work item} & \textbf{Owner} & \textbf{Artifact} \\
 \midrule
 Project scope and architecture finalization & Pranay \& Rahul & \texttt{arch.md}, design discussions \\
@@ -116,61 +175,73 @@ Final report writing                        & Rahul           & \texttt{load-tes
 Final demo preparation                      & Pranay \& Rahul & demo script + recorded walkthrough \\
 \bottomrule
 \end{tabular}
-\caption{Per-item ownership. ``Pranay \& Rahul'' items were paired work where both of us contributed meaningfully.}
-\label{tab:ownership}
 \end{table}
 
 We kept the split clean by designing around interfaces: the API handler (Pranay) called into DynamoDB accessors (Rahul) via a typed Go interface, and the two concurrency-control paths (Rahul's pessimistic, Pranay-integrated with the existing optimistic) lived behind the same \texttt{Processor.attemptTransfer} method. Neither of us had to wait for the other to finish a module before we could start ours.
 
-\section*{4. Problems encountered and how they were resolved}
+%==============================================================
+\section{Problems encountered and how they were resolved}
+%==============================================================
 
-We kept an informal issue log as we went. The entries that mattered most to the final state are summarized in Table~\ref{tab:issues}. Each entry is a real obstacle that cost at least one session to diagnose.
+We kept an informal issue log as we went. The entries that mattered most to the final state are summarized below; each cost at least one session to diagnose.
 
 \begin{table}[h]
 \centering
 \small
 \renewcommand{\arraystretch}{1.2}
 \rowcolors{2}{white}{rowalt}
-\begin{tabular}{>{\raggedright\arraybackslash}p{3.7cm} >{\raggedright\arraybackslash}p{5.0cm} >{\raggedright\arraybackslash}p{5.7cm}}
+\caption{Nine issues hit during the project, with root cause and resolution}
+\label{tab:issues}
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.7cm} >{\raggedright\arraybackslash}p{5.2cm} >{\raggedright\arraybackslash}p{5.5cm}}
 \toprule
-\rowcolor{banditblue}
+\rowcolor{boxblue}
 \textbf{Problem} & \textbf{Root cause} & \textbf{Resolution} \\
 \midrule
 ECS \texttt{CannotPullContainerError} on first deploy & Images built on Apple Silicon (\texttt{arm64}); Fargate defaults to \texttt{linux/amd64} & Switched \texttt{scripts/push\_images.sh} to \texttt{docker buildx build --platform linux/amd64} \\
 \texttt{terraform apply} fails with ``no matching EC2 VPC found'' & No default VPC in \texttt{us-west-2} in this AWS account & \texttt{aws ec2 create-default-vpc --region us-west-2} once; unblocks all applies \\
-\texttt{LabRole} not present in the lab account & Our Northeastern SSO account is not AWS Academy-shaped & Wrote \texttt{scripts/bootstrap\_labrole.sh} to create the role and attach the four managed policies; tightened the preflight check to assert the role is ECS-assumable rather than assert the caller \textit{is} LabRole \\
+\texttt{LabRole} not present in the lab account & Our Northeastern SSO account is not AWS Academy-shaped & Wrote \texttt{scripts/bootstrap\_labrole.sh} to create the role and attach the four managed policies; tightened the preflight check to assert the role is ECS-assumable \\
 \texttt{aws iam create-role} failing with shell-quoting errors & \texttt{zsh} brace expansion eating multiline JSON arguments & Moved trust policy to \texttt{infra/labrole-trust.json}; every \texttt{aws iam} call now uses \texttt{file://} \\
 \texttt{date +\%s\%3N} producing literal \texttt{...3N} on macOS & macOS \texttt{date} has no \texttt{\%N} format & Replaced with \texttt{python3 -c 'import time; print(int(time.time()*1000))'} in both sweep scripts \\
-Between-iteration reseed hitting \texttt{TransactionConflictException} & In-flight worker \texttt{TransactWriteItems} hold a short lock on the item being \texttt{PutItem}'d by reseed & Added SQS purge + 65-second visibility drain before reseed; added 8-attempt exponential backoff retry in the seed script for \texttt{TransactionConflictException} \\
+Between-iteration reseed hitting \texttt{TransactionConflictException} & In-flight worker \texttt{TransactWriteItems} hold a short lock on the item being \texttt{PutItem}'d by reseed & Added SQS purge + 65-second visibility drain before reseed; added 8-attempt exponential backoff retry in the seed script \\
 Transient balance mismatch during scaling sweep & Verifier ran before SQS queue fully drained; verifier used eventually consistent \texttt{Scan} & Added drain loop (visible + in-flight = 0) with 15-second settle buffer; switched \texttt{verify\_balances.py} to \texttt{ConsistentRead=True} \\
-One verify failure aborting whole sweep & \texttt{set -e} treated the transient mismatch as fatal & Sweep scripts now log a warning, write the verify text to a file, and continue to the next iteration \\
+One verify failure aborting whole sweep & \texttt{set -e} treated the transient mismatch as fatal & Sweep scripts now log a warning and continue; verify text captured per iteration \\
 Locust venv import error (\texttt{zope.event}) & Stale dependency in shared venv & Rebuilt \texttt{/tmp/locust-venv} from scratch; added \texttt{boto3} so \texttt{verify\_balances.py} runs in the same interpreter \\
 \bottomrule
 \end{tabular}
-\caption{Nine issues we hit, each with root cause and resolution. Every one of these is discussed in more depth in \texttt{final-report.pdf}.}
-\label{tab:issues}
 \end{table}
 
-The issues cluster into three categories. The \textbf{tooling} category (Docker cross-build, shell quoting, macOS \texttt{date}, Locust venv) were one-time environment mismatches --- annoying but solvable with one-liner changes. The \textbf{cloud-identity} category (LabRole, VPC) was about our account not matching the assumptions baked into the assignment; fixing these taught us more about AWS IAM trust policies than the rest of the project combined. The \textbf{correctness-under-concurrency} category (reseed conflicts, drain waits, \texttt{ConsistentRead}) was the most educational --- those were all places where the system was doing the right thing but our \textit{observation} of the system was wrong, and fixing them required us to separate ``is the system correct'' from ``can I see that it is correct.''
+\begin{highlightbox}
+\textbf{The issues cluster into three categories.} \textbf{Tooling} (Docker cross-build, shell quoting, macOS \texttt{date}, Locust venv) were one-time environment mismatches --- annoying but solvable with one-line changes. \textbf{Cloud identity} (LabRole, VPC) was about our account not matching the assumptions baked into the assignment; fixing these taught us more about AWS IAM trust policies than the rest of the project combined. \textbf{Correctness under concurrency} (reseed conflicts, drain waits, \texttt{ConsistentRead}) was the most educational --- those were all places where the system was doing the right thing but our \textit{observation} of the system was wrong, and fixing them required us to separate ``is the system correct'' from ``can I see that it is correct.''
+\end{highlightbox}
 
-\section*{5. Timeline of commits and milestones}
+%==============================================================
+\section{Timeline of commits and milestones}
+%==============================================================
 
-We did not keep formal sprint retros, but every pull-request-sized unit of work maps to a phase milestone. At a high level the commit cadence looked like this: Weeks~1--2 was heavy on scaffolding commits and the first end-to-end transfer; Weeks~3--4 was dominated by Terraform + cloud-first deployment and the first two experiments; Weeks~5--6 was pessimistic locking plus the two comparison experiments; Weeks~7--8 was documentation, screenshots, chart rendering, and reports. The repository's commit history reflects that cadence --- not the number of commits (the exact count is not the right metric), but the shape of them: feature commits early, infrastructure commits in the middle, refinement and analysis commits at the end.
+We did not keep formal sprint retros, but every pull-request-sized unit of work maps to a phase milestone. At a high level the commit cadence looked like this: Weeks~1--2 were heavy on scaffolding commits and the first end-to-end transfer; Weeks~3--4 were dominated by Terraform + cloud-first deployment and the first two experiments; Weeks~5--6 were pessimistic locking plus the two comparison experiments; Weeks~7--8 were documentation, screenshots, chart rendering, and reports. The repository's commit history reflects that cadence --- not the number of commits (the exact count is not the right metric), but the shape of them: feature commits early, infrastructure commits in the middle, refinement and analysis commits at the end.
 
-\section*{6. What we would do differently next time}
+%==============================================================
+\section{What we would do differently next time}
+%==============================================================
 
+\begin{warnbox}
 Three process-level changes we would make if we started over:
 
 \begin{enumerate}[leftmargin=*, itemsep=0.15em]
-    \item \textbf{Build the verification harness with the same care as the service.} Our transient-mismatch scare during Experiment~4 came from the verifier using an eventually consistent Scan, not from the system losing money. If we had treated \texttt{verify\_balances.py} as first-class code from day one (with \texttt{ConsistentRead=True}, a drain gate, and proper error discrimination between ``mismatch'' and ``still in flight''), we would have saved ourselves an hour of debugging a non-bug.
+    \item \textbf{Build the verification harness with the same care as the service.} Our transient-mismatch scare during Experiment~4 came from the verifier using an eventually consistent Scan, not from the system losing money. Treating \texttt{verify\_balances.py} as first-class code from day one (with \texttt{ConsistentRead=True}, a drain gate, and proper error discrimination between ``mismatch'' and ``still in flight'') would have saved an hour of debugging a non-bug.
 
     \item \textbf{Bootstrap the cloud identity story on day one.} We initially assumed a LabRole existed in our AWS account. It didn't. Creating LabRole ourselves (\texttt{scripts/bootstrap\_labrole.sh}) should have happened during Weeks~1--2, not discovered halfway through Weeks~3--4. The general lesson: verify every external assumption your stack makes \textit{before} you start depending on it.
 
     \item \textbf{Cross-platform build defaults early.} A single-line \texttt{docker buildx --platform linux/amd64} in the original \texttt{push\_images.sh} would have saved an entire deploy cycle during the first ECS rollout. We now treat architecture pinning as a day-one concern on any project that targets a cloud runtime.
 \end{enumerate}
+\end{warnbox}
 
-\section*{7. Final state}
+%==============================================================
+\section{Final state}
+%==============================================================
 
+\begin{winbox}
 Every deliverable in the project implementation plan is done. The system is deployable end-to-end via \texttt{make tf-apply \&\& make push-images \&\& make tf-apply \&\& make cloud-seed \&\& make cloud-smoke}, and tears down cleanly via \texttt{make tf-destroy}. Each experiment has its own \texttt{make} target that produces timestamped artifacts under \texttt{load-tests/experiments/}, including charts and a markdown summary. Four reports live under \texttt{load-tests/}: \texttt{final-report.pdf} (comprehensive individual report), \texttt{experiments-report.pdf} (5-page experiments summary), \texttt{lessons-learned.pdf} (individual reflection), and this project-management report. The full repository is self-contained and reproducible on any AWS account that has a LabRole-shaped role, with no elevated permissions required at apply time.
+\end{winbox}
 
 \end{document}

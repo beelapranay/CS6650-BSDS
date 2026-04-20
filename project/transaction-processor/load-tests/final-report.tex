@@ -90,29 +90,8 @@ Before any code was written we needed a firm agreement on the shape of the syste
 
 \begin{figure}[H]
 \centering
-\begin{lstlisting}[caption={}, label={}, basicstyle=\ttfamily\small, frame=none]
-  Client / Locust
-        |
-        v
-  Application Load Balancer
-        |
-        v
-  ECS Fargate: api-svc  ----------->  DynamoDB: transactions (PENDING)
-        |
-        | SendMessage
-        v
-  Amazon SQS (transfers queue) + DLQ
-        |
-        | ReceiveMessage
-        v
-  ECS Fargate: worker-svc
-   |           |            |
-   v           v            v
- DynamoDB   DynamoDB     CloudWatch Logs
- accounts   account_locks  (app + METRICS snapshots)
- (TransactWriteItems: debit + credit + mark COMPLETED)
-\end{lstlisting}
-\caption{Deployed architecture. Every arrow crosses an AWS service boundary; no component runs locally.}
+\includegraphics[width=\textwidth]{screenshots/arch-diagram.png}
+\caption{Deployed architecture. Every arrow crosses an AWS service boundary; no component runs locally. Every ECS task runs under LabRole; the stack creates no IAM resources of its own. Terraform provisions everything inside the yellow AWS Cloud container.}
 \label{fig:arch}
 \end{figure}
 
