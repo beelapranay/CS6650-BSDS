@@ -24,20 +24,7 @@ The goal was never just "a working demo." The goal was to ship something that wo
 
 An HTTP API accepts transfer requests. Each request is recorded as `PENDING` in DynamoDB and enqueued on Amazon SQS. A separate worker fleet drains the queue, validates funds, and commits the debit, credit, and status update in a single atomic `TransactWriteItems` call against DynamoDB. Clients poll a second endpoint to learn the outcome.
 
-```
-Client / Locust
-      │
-      ▼
-ALB  ─────────▶  ECS Fargate: api-svc  ──▶  DynamoDB: transactions (PENDING)
-                         │
-                         │  SendMessage
-                         ▼
-                 Amazon SQS  ──▶  ECS Fargate: worker-svc
-                                        │
-                                        ├─▶ DynamoDB: accounts   (TransactWriteItems)
-                                        ├─▶ DynamoDB: account_locks   (pessimistic mode)
-                                        └─▶ CloudWatch Logs  (app + METRICS snapshots)
-```
+![Architecture diagram](load-tests/screenshots/arch-diagram.png)
 
 Key properties we committed to up front:
 
